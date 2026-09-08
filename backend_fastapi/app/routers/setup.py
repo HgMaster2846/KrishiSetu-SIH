@@ -22,6 +22,7 @@ class CredentialsPayload(BaseModel):
     exotel_phone_number: Optional[str] = None
     sarvam_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
+    agmarknet_api_key: Optional[str] = None
     postgres_database_url: Optional[str] = None
     sms_provider: Optional[str] = "mock"
     demo_mode: Optional[bool] = True
@@ -50,6 +51,7 @@ def get_setup_status(db: Session = Depends(get_db)):
             "exotel_configured": bool(settings.EXOTEL_API_KEY and settings.EXOTEL_ACCOUNT_SID),
             "sarvam_configured": bool(settings.SARVAM_API_KEY),
             "gemini_configured": bool(settings.GEMINI_API_KEY),
+            "agmarknet_configured": bool(settings.AGMARKNET_API_KEY or settings.DATA_GOV_IN_API_KEY),
             "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN),
             "database_connected": True
         }
@@ -61,7 +63,7 @@ def save_configuration(payload: CredentialsPayload, db: Session = Depends(get_db
     Saves credentials into system_configs table and writes to backend .env file.
     No source code editing needed!
     """
-    updates = payload.dict(exclude_none=True)
+    updates = payload.model_dump(exclude_none=True) if hasattr(payload, "model_dump") else payload.dict(exclude_none=True)
     
     # Update running settings
     settings.update_from_dict(updates)
@@ -96,16 +98,22 @@ def save_configuration(payload: CredentialsPayload, db: Session = Depends(get_db
 @router.post("/verify")
 async def verify_all_credentials(payload: Optional[CredentialsPayload] = None, db: Session = Depends(get_db)):
     """
-    Verifies Exotel, Sarvam, Gemini, Database, and SMS integrations.
+    Verifies Exotel, Sarvam, Gemini, Agmarknet, Database, and SMS integrations.
     Returns green/red indicators for the UI setup wizard.
     """
     if payload:
-        settings.update_from_dict(payload.dict(exclude_none=True))
+        updates = payload.model_dump(exclude_none=True) if hasattr(payload, "model_dump") else payload.dict(exclude_none=True)
+        settings.update_from_dict(updates)
 
     exotel_res = await ExotelService.verify_credentials()
     sarvam_res = await SarvamService.verify_key()
     gemini_res = await GeminiService.verify_key()
     twilio_res = await TelephonyFallbackService.verify_twilio()
+    
+    # Agmarknet verify
+    agmark_key = settings.AGMARKNET_API_KEY or settings.DATA_GOV_IN_API_KEY
+    agmark_valid = bool(agmark_key)
+    agmark_msg = "Agmarknet (data.gov.in) key configured and ready" if agmark_valid else "Agmarknet key not configured (using active APMC benchmark cache)"
     
     # DB verify
     db_valid = True
@@ -128,6 +136,10 @@ async def verify_all_credentials(payload: Optional[CredentialsPayload] = None, d
             "gemini": {
                 "valid": gemini_res["valid"],
                 "message": gemini_res["message"]
+            },
+            "agmarknet": {
+                "valid": agmark_valid,
+                "message": agmark_msg
             },
             "twilio_fallback": {
                 "valid": twilio_res["valid"],
@@ -254,3 +266,10 @@ def one_click_deployment(platform: str = Query("docker", description="railway, r
         "webhook_url": f"<YOUR_PUBLIC_HTTPS_URL>/voice/webhook",
         "sms_url": f"<YOUR_PUBLIC_HTTPS_URL>/voice/sms"
     }
+
+@router.post("/sync-agmarknet")
+async def setup_sync_agmarknet(db: Session = Depends(get_db)):
+    """Triggers live synchronization of Agmarknet mandi prices from Setup tab."""
+    from ..services.mandi_service import MandiService
+    return await MandiService.sync_agmarknet_prices(db=db)
+

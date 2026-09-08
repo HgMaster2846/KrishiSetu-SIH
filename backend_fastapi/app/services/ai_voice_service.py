@@ -91,139 +91,281 @@ class AIVoiceService:
     @classmethod
     def process_voice_step(cls, step: int, user_speech: str, phone: str, session_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
         session_data = session_data or {}
-        
+        speech_clean = (user_speech or "").strip()
+        speech_lower = speech_clean.lower()
+        conf_state = session_data.get("confirmation_state", "PENDING")
+
+        # Step 0: Initial Greeting
         if step == 0:
             ai_speech = "Namaste! KrishiSetu AI mein aapka swagat hai. Main aapka Digital Mandi Sahayak hoon. Aap konsi fasal bechna chahte hain aur kitni maatra hai?"
+            session_data["confirmation_state"] = "PENDING"
+            session_data["phone"] = phone
             return {
                 "step": 1,
                 "ai_speech": ai_speech,
                 "is_final": False,
                 "extracted_entities": {},
                 "created_listing_id": None,
-                "session_data": {"phone": phone}
+                "confirmation_state": "PENDING",
+                "session_data": session_data
             }
 
-        elif step == 1:
+        # Handle Mandatory Confirmation (Task 4)
+        if conf_state == "AWAITING_CONFIRMATION" or step == 4:
+            is_no = any(w in speech_lower for w in ["nahi", "galat", "na", "no", "badal", "change", "2", "mat", "nhi", "wrong"]) or speech_lower == "2"
+            is_yes = (not is_no) and (any(w in speech_lower for w in ["haan", "bilkul", "theek", "yes", "han", "confirm", "1"]) or "sahi hai" in speech_lower or speech_lower == "1")
+
+            if is_yes:
+                # Farmer Confirmed -> Create Listing & Trigger Real Matching Pipeline
+                crop_name = session_data.get("crop_name", "Tomato")
+                qty = float(session_data.get("quantity_kg", 200.0))
+                village = session_data.get("village", "Murthal")
+                district = session_data.get("district", "Sonipat")
+                state = session_data.get("state", "Haryana")
+                price = float(session_data.get("expected_price", 25.0))
+
+                # Lookup / Register Farmer
+                farmer = db.query(models.FarmerModel).filter(models.FarmerModel.phone == phone).first()
+                if not farmer:
+                    farmer_id = "FARM-" + datetime.utcnow().strftime("%H%M%S")
+                    farmer = models.FarmerModel(
+                        id=farmer_id,
+                        name="Kisan Sathi",
+                        phone=phone,
+                        village=village,
+                        district=district,
+                        state=state,
+                        language="hi"
+                    )
+                    db.add(farmer)
+                    db.commit()
+
+                # Mandi Benchmark
+                mandi_row = db.query(models.MandiPriceModel).filter(models.MandiPriceModel.crop_name.ilike(f"%{crop_name}%")).first()
+                benchmark = mandi_row.modal_price if mandi_row else round(price * 1.03, 1)
+
+                # Persist Listing
+                listing_id = "LIST-" + datetime.utcnow().strftime("%M%S")
+                new_listing = models.ListingModel(
+                    id=listing_id,
+                    farmer_id=farmer.id,
+                    farmer_name=farmer.name,
+                    farmer_phone=farmer.phone,
+                    crop_name=crop_name,
+                    quantity_kg=qty,
+                    expected_price_per_kg=price,
+                    farmer_min_price=round(price * 0.90, 1),
+                    current_best_offer=None,
+                    village=village,
+                    district=district,
+                    state=state,
+                    harvest_date=(datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d"),
+                    quality_grade="Grade A",
+                    status="ACTIVE",
+                    ai_mandi_benchmark=benchmark,
+                    created_via="AI_HOTLINE_VOICE",
+                    created_at=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                )
+                db.add(new_listing)
+                db.commit()
+
+                # Trigger Buyer Recommendation (Task 6)
+                from .recommendation_service import RecommendationEngine
+                rec_result = RecommendationEngine.rank_buyers_for_listing(new_listing, db)
+                top_recs = rec_result.get("recommendations", [])
+                top_buyer_name = top_recs[0]["buyer"]["name"] if top_recs else "Verified Mandi Buyer"
+                top_buyer_price = top_recs[0]["offered_price_per_kg"] if top_recs else price
+
+                # Trigger Logistics AI Match (Task 7)
+                from .logistics_service import LogisticsService
+                logistics_info = LogisticsService.get_top_logistics_pitch(village, district, "Azadpur Mandi, Delhi", qty, db)
+                logistics_pitch = logistics_info.get("spoken_pitch", "")
+                truck_num = logistics_info.get("best_truck", {}).get("truck_number", "HR-10-AJ-4821") if logistics_info.get("best_truck") else "HR-10-AJ-4821"
+
+                # Trigger Enriched SMS (Task 8)
+                from .sms_service import SMSService
+                deal_id = f"DEAL-{listing_id[-4:]}"
+                SMSService.send_deal_offer_sms(
+                    phone=phone,
+                    buyer_name=top_buyer_name,
+                    crop=crop_name,
+                    quantity_kg=qty,
+                    price_per_kg=top_buyer_price,
+                    pickup_date="Kal Subah 8:00 AM",
+                    pickup_location=f"{village}, {district}",
+                    truck_info=f"Pooled Truck ({truck_num})",
+                    deal_id=deal_id,
+                    db=db
+                )
+
+                session_data["confirmation_state"] = "CONFIRMED"
+                session_data["created_listing_id"] = listing_id
+                session_data["selected_buyer"] = top_recs[0] if top_recs else {}
+                session_data["logistics_offer"] = logistics_info
+
+                ai_speech = (
+                    f"Bahut badhiya {farmer.name} ji! Aapka {qty:g} kilo {crop_name} listing darj ho gaya hai (ID {listing_id}). "
+                    f"{top_buyer_name} ne ₹{top_buyer_price:g} prati kilo ka offer diya hai. "
+                    f"{logistics_pitch} "
+                    f"Offer SMS aapke phone par bhej diya hai. Sauda pakka karne ke liye SMS par YES reply karein. "
+                    f"KrishiSetu AI par call karne ke liye dhanyawad!"
+                )
+
+                return {
+                    "step": 4,
+                    "ai_speech": ai_speech,
+                    "is_final": True,
+                    "extracted_entities": {
+                        "listing_id": listing_id,
+                        "farmer_name": farmer.name,
+                        "crop_name": crop_name,
+                        "quantity_kg": qty,
+                        "expected_price": price,
+                        "village": village,
+                        "district": district,
+                        "state": state,
+                        "mandi_benchmark": benchmark,
+                        "top_buyer": top_buyer_name,
+                        "top_buyer_price": top_buyer_price
+                    },
+                    "created_listing_id": listing_id,
+                    "confirmation_state": "CONFIRMED",
+                    "session_data": session_data
+                }
+
+            elif is_no:
+                # Farmer Rejected -> Ask what to correct (Task 4)
+                session_data["confirmation_state"] = "CORRECTION"
+                return {
+                    "step": 5,
+                    "ai_speech": "Koi baat nahi. Aap kaunsi jankari badalna chahte hain? Fasal, maatra, gaon, ya daam?",
+                    "is_final": False,
+                    "extracted_entities": session_data,
+                    "confirmation_state": "CORRECTION",
+                    "session_data": session_data
+                }
+
+        # Handle Correction State (Step 5)
+        if conf_state == "CORRECTION" or step == 5:
+            if any(w in speech_lower for w in ["tamatar", "pyaz", "aloo", "gehun", "chawal", "sarson", "fasal"]):
+                c, _ = cls.extract_crop_and_qty(user_speech)
+                session_data["crop_name"] = c
+            if any(w in speech_lower for w in ["kilo", "kg", "quintal", "maatra"]) or any(char.isdigit() for char in speech_lower):
+                _, q = cls.extract_crop_and_qty(user_speech)
+                if q > 0:
+                    session_data["quantity_kg"] = q
+            if any(w in speech_lower for w in ["gaon", "zila", "district", "se", "mein"]):
+                v, d, s = cls.extract_location(user_speech)
+                session_data["village"] = v
+                session_data["district"] = d
+                session_data["state"] = s
+            if any(w in speech_lower for w in ["rupaye", "rs", "daam", "rate", "bhav", "paisa"]):
+                p = cls.extract_price(user_speech)
+                session_data["expected_price"] = p
+
+            session_data["confirmation_state"] = "AWAITING_CONFIRMATION"
+            crop = session_data.get("crop_name", "Tomato")
+            qty = session_data.get("quantity_kg", 200.0)
+            village = session_data.get("village", "Murthal")
+            district = session_data.get("district", "Sonipat")
+            price = session_data.get("expected_price", 25.0)
+
+            ai_speech = (
+                f"Maine badal diya hai: {qty:g} kilo {crop}, {village}, {district} se, "
+                f"daam ₹{price:g} prati kilo. Kya ab ye sab sahi hai? Haan ya Na bolein."
+            )
+            return {
+                "step": 4,
+                "ai_speech": ai_speech,
+                "is_final": False,
+                "extracted_entities": session_data,
+                "confirmation_state": "AWAITING_CONFIRMATION",
+                "session_data": session_data
+            }
+
+        # Step 1: Crop & Quantity Extraction (Never ask already answered questions - Task 3)
+        if step == 1 or ("crop_name" not in session_data and "quantity_kg" not in session_data):
             crop_name, qty = cls.extract_crop_and_qty(user_speech)
             session_data["crop_name"] = crop_name
             session_data["quantity_kg"] = qty
             
-            ai_speech = f"Maine darj kar liya hai: {qty:g} kilo {crop_name}. Aap kis gaon aur zile se bol rahe hain?"
+            # Check if user already provided location or price in this first sentence!
+            if any(sep in speech_lower for sep in [" se", " mein", "from", ","]):
+                v, d, s = cls.extract_location(user_speech)
+                if v != "Murthal" or "murthal" in speech_lower:
+                    session_data["village"] = v
+                    session_data["district"] = d
+                    session_data["state"] = s
+            if any(p_word in speech_lower for p_word in ["rupaye", "rs", "rate", "daam"]):
+                session_data["expected_price"] = cls.extract_price(user_speech)
+
+        # Step 2: Location Extraction
+        elif step == 2 or ("village" not in session_data):
+            v, d, s = cls.extract_location(user_speech)
+            session_data["village"] = v
+            session_data["district"] = d
+            session_data["state"] = s
+            if any(p_word in speech_lower for p_word in ["rupaye", "rs", "rate", "daam"]):
+                session_data["expected_price"] = cls.extract_price(user_speech)
+
+        # Step 3: Price Extraction
+        elif step == 3 or ("expected_price" not in session_data):
+            session_data["expected_price"] = cls.extract_price(user_speech)
+
+        # Intelligently decide next turn based on missing entities
+        crop = session_data.get("crop_name")
+        qty = session_data.get("quantity_kg")
+        village = session_data.get("village")
+        district = session_data.get("district")
+        price = session_data.get("expected_price")
+
+        if not crop or not qty:
+            return {
+                "step": 1,
+                "ai_speech": "Aap konsi fasal bechna chahte hain aur kitni maatra hai?",
+                "is_final": False,
+                "extracted_entities": session_data,
+                "created_listing_id": None,
+                "session_data": session_data
+            }
+        elif not village or not district:
             return {
                 "step": 2,
-                "ai_speech": ai_speech,
+                "ai_speech": f"Maine darj kar liya hai: {qty:g} kilo {crop}. Aap kis gaon aur zile se bol rahe hain?",
                 "is_final": False,
-                "extracted_entities": {"crop_name": crop_name, "quantity_kg": qty},
+                "extracted_entities": session_data,
                 "created_listing_id": None,
                 "session_data": session_data
             }
-
-        elif step == 2:
-            village, district, state = cls.extract_location(user_speech)
-            session_data["village"] = village
-            session_data["district"] = district
-            session_data["state"] = state
-            
-            ai_speech = f"{village}, {district} se. Bahut achha. Aapko apni fasal ke liye kitna daam chahiye prati kilo?"
+        elif price is None:
             return {
                 "step": 3,
-                "ai_speech": ai_speech,
+                "ai_speech": f"{village}, {district} se. Bahut achha. Aapko apni fasal ke liye kitna daam chahiye prati kilo?",
                 "is_final": False,
-                "extracted_entities": {
-                    "crop_name": session_data.get("crop_name"),
-                    "quantity_kg": session_data.get("quantity_kg"),
-                    "village": village,
-                    "district": district,
-                    "state": state
-                },
+                "extracted_entities": session_data,
                 "created_listing_id": None,
                 "session_data": session_data
             }
-
         else:
-            price = cls.extract_price(user_speech)
-            session_data["expected_price"] = price
-            
-            crop_name = session_data.get("crop_name", "Tomato")
-            qty = session_data.get("quantity_kg", 200.0)
-            village = session_data.get("village", "Murthal")
-            district = session_data.get("district", "Sonipat")
-            state = session_data.get("state", "Haryana")
-            
-            farmer = db.query(models.FarmerModel).filter(models.FarmerModel.phone == phone).first()
-            if not farmer:
-                farmer_id = "FARM-" + datetime.utcnow().strftime("%H%M%S")
-                farmer = models.FarmerModel(
-                    id=farmer_id,
-                    name="Kisan Sathi",
-                    phone=phone,
-                    village=village,
-                    district=district,
-                    state=state,
-                    language="hi"
-                )
-                db.add(farmer)
-                db.commit()
-            
-            mandi_row = db.query(models.MandiPriceModel).filter(models.MandiPriceModel.crop_name.ilike(f"%{crop_name}%")).first()
-            benchmark = mandi_row.modal_price if mandi_row else round(price * 1.03, 1)
-            
-            listing_id = "LIST-" + datetime.utcnow().strftime("%M%S")
-            new_listing = models.ListingModel(
-                id=listing_id,
-                farmer_id=farmer.id,
-                farmer_name=farmer.name,
-                farmer_phone=farmer.phone,
-                crop_name=crop_name,
-                quantity_kg=qty,
-                expected_price_per_kg=price,
-                farmer_min_price=round(price * 0.90, 1),
-                current_best_offer=None,
-                village=village,
-                district=district,
-                state=state,
-                harvest_date=(datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d"),
-                quality_grade="Grade A",
-                status="ACTIVE",
-                ai_mandi_benchmark=benchmark,
-                created_via="AI_HOTLINE_VOICE",
-                created_at=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-            )
-            db.add(new_listing)
-            
-            sms_msg = f"[KrishiSetu AI] Namaste! Aapka {qty:g}kg {crop_name} listing darj ho gaya hai (ID: {listing_id}). Expected daam: Rs {price}/kg. Mandi rate: Rs {benchmark}/kg. Khareedaar aate hi SMS milega."
-            sms_log = models.SMSLogModel(
-                phone=phone,
-                direction="OUTGOING",
-                message=sms_msg,
-                status="DELIVERED"
-            )
-            db.add(sms_log)
-            db.commit()
-            
+            # All 4 fields present -> Enter Mandatory Confirmation Flow (Task 4)
+            session_data["confirmation_state"] = "AWAITING_CONFIRMATION"
             ai_speech = (
-                f"Bahut badhiya {farmer.name} ji! Aapka {qty:g} kilo {crop_name}, "
-                f"{village} ({district}) se, {price:g} rupaye prati kilo par darj kar liya gaya hai. "
-                f"Azadpur mandi ka ausat daam {benchmark:g} rupaye chal raha hai. "
-                f"Jaise hi buyer ka offer aayega, AI aapke paksh mein behtareen mol-bhav karega "
-                f"aur aapko SMS aayega. KrishiSetu AI par call karne ke liye dhanyawad!"
+                f"Maine aapki jankari darj kar li hai: {qty:g} kilo {crop}, {village}, {district} se, "
+                f"daam ₹{price:g} prati kilo. Ye sab sahi hai? Haan ya Na bolein."
             )
-            
             return {
                 "step": 4,
                 "ai_speech": ai_speech,
-                "is_final": True,
+                "is_final": False,
                 "extracted_entities": {
-                    "listing_id": listing_id,
-                    "farmer_name": farmer.name,
-                    "crop_name": crop_name,
+                    "crop_name": crop,
                     "quantity_kg": qty,
-                    "expected_price": price,
                     "village": village,
                     "district": district,
-                    "state": state,
-                    "mandi_benchmark": benchmark
+                    "expected_price": price
                 },
-                "created_listing_id": listing_id,
+                "created_listing_id": None,
+                "confirmation_state": "AWAITING_CONFIRMATION",
                 "session_data": session_data
             }
+

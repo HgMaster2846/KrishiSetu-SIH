@@ -1,7 +1,9 @@
+import asyncio
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from ..models import models
+from ..config import settings
 
 class SMSService:
     @classmethod
@@ -15,7 +17,50 @@ class SMSService:
         db.add(log)
         db.commit()
         db.refresh(log)
+        
+        # If Exotel or Twilio configured, dispatch via carrier asynchronously
+        if settings.SMS_PROVIDER.lower() == "exotel" and settings.EXOTEL_API_KEY:
+            from .exotel_service import ExotelService
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.create_task(ExotelService.send_sms(phone, message))
+            except Exception:
+                pass
+                
         return log
+
+    @classmethod
+    def send_deal_offer_sms(
+        cls,
+        phone: str,
+        buyer_name: str,
+        crop: str,
+        quantity_kg: float,
+        price_per_kg: float,
+        pickup_date: str,
+        pickup_location: str,
+        truck_info: str,
+        deal_id: str,
+        db: Session
+    ) -> models.SMSLogModel:
+        """
+        Dispatches enriched deal offer SMS (Task 8):
+        Includes Buyer, Crop, Quantity, Price, Pickup Date, Pickup Location, Truck (if pooled), Deal ID, Reply YES/NO.
+        """
+        total = round(quantity_kg * price_per_kg, 2)
+        message = (
+            f"[KrishiSetu AI] Naya Sauda Offer!\n"
+            f"Deal ID: {deal_id}\n"
+            f"Buyer: {buyer_name}\n"
+            f"Fasal: {crop} ({quantity_kg:g} kg)\n"
+            f"Daam: Rs {price_per_kg:g}/kg (Total: Rs {total:g})\n"
+            f"Pickup: {pickup_date}, {pickup_location}\n"
+            f"Truck: {truck_info}\n"
+            f"Sauda pakka karne ke liye reply karein: YES (ya 1), radd karne ke liye: NO (ya 2)."
+        )
+        return cls.send_sms(phone, message, db)
+
 
     @classmethod
     def handle_incoming_sms(cls, phone: str, reply_text: str, db: Session) -> Dict[str, Any]:

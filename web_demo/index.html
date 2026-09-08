@@ -332,6 +332,16 @@
 
             <!-- TAB 3: MANDI INTELLIGENCE -->
             <div id="content-mandi" class="hidden space-y-5">
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-bold text-slate-800">Source: Official Government Agmarknet APMC Feed</span>
+                        <span id="agmarknet-live-badge" class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">Live Agmarknet Active</span>
+                    </div>
+                    <button onclick="syncAgmarknetAction()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sync Agmarknet Now
+                    </button>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                         <div class="text-xs text-slate-500 font-medium">Tomato (Azadpur Mandi)</div>
@@ -722,6 +732,39 @@
                                     </select>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- AGMARKNET GOVERNMENT MANDI API CARD (TASK 9) -->
+                        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 col-span-1 md:col-span-2">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                                    <i data-lucide="database" class="w-4 h-4 text-emerald-700"></i> Agmarknet Government Mandi API (data.gov.in)
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <span id="status-badge-agmarknet" class="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded">BENCHMARK ACTIVE</span>
+                                    <button onclick="syncAgmarknetAction()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded flex items-center gap-1 transition shadow">
+                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> Sync Live Prices
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                                <div class="md:col-span-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-[11px] font-semibold text-slate-600">AGMARKNET_API_KEY (Open Government Data • data.gov.in)</label>
+                                        <span class="text-[9px] text-slate-400 font-mono">Resource: 9ef84268-d588-465a-a308-a864a43d0070</span>
+                                    </div>
+                                    <input type="password" id="setup-agmarknet-key" placeholder="Enter your data.gov.in API key..." class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="verifyAgmarknetKeyAction()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1 transition shadow">
+                                        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Verify
+                                    </button>
+                                    <button onclick="saveAgmarknetKeyAction()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-1 transition shadow">
+                                        <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Live prices from national APMCs automatically convert from ₹/Quintal to ₹/Kg and update buyer ranking benchmarks with zero delay.</p>
                         </div>
                     </div>
 
@@ -1367,22 +1410,32 @@
             const data = msg.data || {};
 
             if (type === "call_started") {
-                document.getElementById("live-caller-phone").innerText = data.from_number || data.phone || "+91 98123 45001";
+                const callerPhone = data.caller_number || data.from_number || data.phone || "+91 98123 45001";
+                document.getElementById("live-caller-phone").innerText = callerPhone;
                 document.getElementById("live-call-state").innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> IN_PROGRESS';
-                document.getElementById("live-conversation-stage").innerText = "STEP 1: Greeting & Crop Detection";
+                document.getElementById("live-conversation-stage").innerText = data.conversation_state || "STEP 1: Greeting & Crop Detection";
                 appendTranscriptMessage("AI Sahayak (KrishiSetu AI)", data.ai_speech || "Namaste! KrishiSetu AI mein aapka swagat hai.", "ai");
             } else if (type === "farmer_speaking") {
-                appendTranscriptMessage("Kisan (Farmer • Voice)", data.transcript, "farmer");
+                appendTranscriptMessage(`Kisan (${data.caller_number || 'Farmer • Real Phone'})`, data.transcript, "farmer");
+                if (data.conversation_state) document.getElementById("live-conversation-stage").innerText = data.conversation_state;
             } else if (type === "ai_speaking") {
                 appendTranscriptMessage("AI Sahayak (KrishiSetu AI)", data.ai_speech, "ai");
                 if (data.stage) document.getElementById("live-conversation-stage").innerText = data.stage;
-                if (data.extracted) updateExtractedEntitiesCard(data.extracted);
+                if (data.conversation_state) document.getElementById("live-conversation-stage").innerText = data.conversation_state;
+                if (data.extracted_entities) updateExtractedEntitiesCard(data.extracted_entities);
+                else if (data.extracted) updateExtractedEntitiesCard(data.extracted);
+                if (data.buyer_recommendation && data.buyer_recommendation.buyer) {
+                    showNotification("AI Buyer Match", `Top pick: ${data.buyer_recommendation.buyer.name} @ ₹${data.buyer_recommendation.offered_price_per_kg}/kg`);
+                }
+                if (data.logistics_recommendation && data.logistics_recommendation.best_truck) {
+                    showNotification("AI Pooled Logistics", `Matched truck: ${data.logistics_recommendation.best_truck.truck_number}. Savings: ₹${data.logistics_recommendation.savings}`);
+                }
             } else if (type === "listing_created") {
                 const id = data.listing_id || "LIST-NEW";
                 document.getElementById("entity-listing-id").innerText = id;
                 document.getElementById("badge-created-via").className = "text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded border border-emerald-200 animate-bounce";
                 document.getElementById("badge-created-via").innerText = "✓ LIVE ON MARKETPLACE";
-                showNotification("New Crop Listing Created via AI Hotline", `Listing ${id} created from voice call. Syncing buyers.`);
+                showNotification("New Crop Listing Created via AI Hotline", `Listing ${id} created from real phone call. Deal offer dispatched via SMS.`);
                 loadListings();
             } else if (type === "sms_event") {
                 loadSMSThread();
@@ -1446,6 +1499,7 @@
                 exotel_phone_number: document.getElementById("setup-exotel-phone").value || null,
                 sarvam_api_key: document.getElementById("setup-sarvam-key").value || null,
                 gemini_api_key: document.getElementById("setup-gemini-key").value || null,
+                agmarknet_api_key: (document.getElementById("setup-agmarknet-key") ? document.getElementById("setup-agmarknet-key").value : null) || null,
                 sms_provider: document.getElementById("setup-sms-provider").value,
                 demo_mode: document.getElementById("setup-env-mode").value === "demo"
             };
@@ -1456,7 +1510,7 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                alert(data.message);
+                showNotification("Setup Saved", data.message);
                 loadSetupStatus();
             } catch (e) {
                 alert("Failed to save configuration.");
@@ -1470,7 +1524,8 @@
                 exotel_account_sid: document.getElementById("setup-exotel-sid").value || null,
                 exotel_phone_number: document.getElementById("setup-exotel-phone").value || null,
                 sarvam_api_key: document.getElementById("setup-sarvam-key").value || null,
-                gemini_api_key: document.getElementById("setup-gemini-key").value || null
+                gemini_api_key: document.getElementById("setup-gemini-key").value || null,
+                agmarknet_api_key: (document.getElementById("setup-agmarknet-key") ? document.getElementById("setup-agmarknet-key").value : null) || null
             };
             try {
                 const res = await fetch("/setup/verify", {
@@ -1493,10 +1548,56 @@
                 gemB.innerText = cl.gemini.valid ? "✓ ACTIVE" : "READY (LOCAL NLP)";
                 gemB.className = cl.gemini.valid ? "text-[9px] text-emerald-600 font-bold" : "text-[9px] text-slate-500 font-bold";
 
-                alert("Verification completed! All integrations checked.");
+                const agmB = document.getElementById("status-badge-agmarknet");
+                if (agmB && cl.agmarknet) {
+                    agmB.innerText = cl.agmarknet.valid ? "✓ ACTIVE" : "BENCHMARK CACHE";
+                    agmB.className = cl.agmarknet.valid ? "text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded" : "text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded";
+                }
+
+                showNotification("Verification Completed", "All integrations checked: Exotel, Sarvam, Gemini, Agmarknet.");
             } catch (e) {
                 alert("Verification request failed.");
             }
+        }
+
+        async function syncAgmarknetAction() {
+            try {
+                showNotification("Agmarknet Sync", "Fetching live APMC prices from data.gov.in...");
+                const keyElem = document.getElementById("setup-agmarknet-key");
+                const key = keyElem ? keyElem.value.trim() : "";
+                const res = await fetch("/mandi/sync-agmarknet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ api_key: key || null })
+                });
+                const data = await res.json();
+                showNotification("Agmarknet Live Sync", data.message || "APMC Mandi benchmarks updated!");
+                const badge = document.getElementById("status-badge-agmarknet");
+                if (badge) {
+                    badge.innerText = "✓ LIVE SYNCED";
+                    badge.className = "text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded";
+                }
+                const liveB = document.getElementById("agmarknet-live-badge");
+                if (liveB) {
+                    liveB.innerText = data.source || "Live Agmarknet Active";
+                }
+            } catch (e) {
+                showNotification("Agmarknet Sync", "Fallback APMC Mandi benchmarks active.");
+            }
+        }
+
+        async function verifyAgmarknetKeyAction() {
+            const keyElem = document.getElementById("setup-agmarknet-key");
+            const key = keyElem ? keyElem.value.trim() : "";
+            if (!key) {
+                alert("Please enter your data.gov.in Agmarknet API Key first.");
+                return;
+            }
+            await syncAgmarknetAction();
+        }
+
+        async function saveAgmarknetKeyAction() {
+            await saveSetupAction();
         }
 
         async function autoConnectHotlineAction() {

@@ -78,3 +78,42 @@ class SarvamService:
         except Exception:
             pass
         return None
+
+    @classmethod
+    async def speech_to_text_from_url(cls, recording_url: str, language: str = "hi-IN") -> str:
+        """Downloads audio file from Exotel or carrier URL and transcribes via Sarvam."""
+        if not recording_url:
+            return ""
+        try:
+            auth = None
+            if settings.EXOTEL_API_KEY and settings.EXOTEL_API_SECRET and "exotel.com" in recording_url:
+                auth = (settings.EXOTEL_API_KEY, settings.EXOTEL_API_SECRET)
+            async with httpx.AsyncClient(timeout=25.0, follow_redirects=True) as client:
+                res = await client.get(recording_url, auth=auth)
+                if res.status_code == 200 and len(res.content) > 0:
+                    return await cls.speech_to_text(res.content, language=language)
+        except Exception:
+            pass
+        return ""
+
+    @staticmethod
+    def cache_audio(audio_bytes: bytes) -> str:
+        """Stores synthesized audio in memory and returns unique audio_id."""
+        import uuid
+        import time
+        audio_id = f"aud_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+        AUDIO_CACHE[audio_id] = audio_bytes
+        # Evict old items if cache exceeds 100 entries
+        if len(AUDIO_CACHE) > 100:
+            oldest_key = next(iter(AUDIO_CACHE))
+            AUDIO_CACHE.pop(oldest_key, None)
+        return audio_id
+
+    @staticmethod
+    def get_cached_audio(audio_id: str) -> Optional[bytes]:
+        """Retrieves cached audio bytes by audio_id."""
+        # Clean audio_id in case .wav extension was appended
+        clean_id = audio_id.replace(".wav", "").replace(".mp3", "")
+        return AUDIO_CACHE.get(clean_id) or AUDIO_CACHE.get(audio_id)
+
+AUDIO_CACHE: Dict[str, bytes] = {}

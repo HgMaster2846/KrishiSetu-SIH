@@ -38,8 +38,15 @@ class RecommendationEngine:
             dist = max(5.0, b.distance_km)
             distance_score = max(10.0, 100.0 - (dist / 150.0) * 80.0)
             
-            # 3. Buyer Demand Score (20%)
-            demand_score = 95.0 if (b.total_deals > 300) else (70.0 if b.total_deals > 50 else 40.0)
+            # 3. Buyer Demand & Historical Purchase Volume Score (20%)
+            if b.total_deals > 300:
+                demand_score = 95.0
+            elif b.total_deals > 100:
+                demand_score = 80.0
+            elif b.total_deals > 30:
+                demand_score = 65.0
+            else:
+                demand_score = 45.0
             
             # 4. Trust Score (15%)
             trust_score = float(b.trust_score)
@@ -66,6 +73,11 @@ class RecommendationEngine:
                 overall_score = max(10.0, overall_score - 40.0)
             elif b.fraud_risk == "MEDIUM":
                 overall_score = max(20.0, overall_score - 20.0)
+
+            # TASK 6 Rule: Never recommend buyers below Farmer minimum reserve price
+            farmer_min = getattr(listing, "farmer_min_price", None)
+            if farmer_min is not None and farmer_min > 0 and offered_price < farmer_min:
+                continue
 
             scored_buyers.append({
                 "buyer": b,

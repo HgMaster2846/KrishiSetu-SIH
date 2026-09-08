@@ -15,6 +15,7 @@ class _SetupDashboardScreenState extends State<SetupDashboardScreen> {
   final _exotelPhoneController = TextEditingController(text: "+91 1800-260-3300");
   final _sarvamKeyController = TextEditingController();
   final _geminiKeyController = TextEditingController();
+  final _agmarknetKeyController = TextEditingController();
   
   String _smsProvider = "mock";
   bool _demoMode = true;
@@ -304,6 +305,43 @@ class _SetupDashboardScreenState extends State<SetupDashboardScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Agmarknet Mandi Card (Task 9)
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.between,
+                      children: const [
+                        Text("3. Agmarknet Government Mandi API", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        Chip(label: Text("data.gov.in Live", style: TextStyle(fontSize: 10)), visualDensity: VisualDensity.compact),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _agmarknetKeyController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Agmarknet API Key (data.gov.in)",
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Live prices from national APMCs automatically convert from ₹/Quintal to ₹/Kg.",
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                   ],
                 ),

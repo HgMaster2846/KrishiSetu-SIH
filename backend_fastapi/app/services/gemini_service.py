@@ -102,6 +102,51 @@ class GeminiService:
             pass
         return None
 
+    @classmethod
+    async def extract_entities_with_gemini(cls, user_speech: str) -> Optional[Dict[str, Any]]:
+        """
+        Uses Gemini to extract agricultural entities from spoken Hindi text.
+        Returns dict with crop_name, quantity_kg, village, district, state, expected_price, or confirmation_response.
+        """
+        if not settings.GEMINI_API_KEY or not user_speech:
+            return None
+        
+        prompt = f"""
+You are an expert NLP parser for Indian agriculture in Hindi/Hinglish.
+Analyze the farmer's speech: "{user_speech}"
+
+Extract whatever entities are mentioned and respond ONLY in valid JSON format:
+{{
+  "crop_name": "<Standard English crop name like Tomato, Potato, Onion, Rice (Basmati 1121), Wheat (Sharbati / MP), Mustard (Sarson), etc., or null if not mentioned>",
+  "quantity_kg": <float value in kg or null (e.g. 200, or 2000 for 20 quintal)>,
+  "village": "<village name or null>",
+  "district": "<district name or null>",
+  "state": "<Indian state name or null>",
+  "expected_price_per_kg": <float price in INR/kg or null>,
+  "confirmation_intent": "<'YES' if confirming agreement (haan, sahi hai, yes, ok, bilkul), 'NO' if rejecting (nahi, galat, na, no), 'CORRECTION' if correcting a field, or null>",
+  "correction_field": "<'crop', 'quantity', 'location', 'price', or null>"
+}}
+"""
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        payload = {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 250}
+        }
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(url, json=payload)
+                if res.status_code == 200:
+                    candidates = res.json().get("candidates", [])
+                    if candidates:
+                        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        match = re.search(r'\{.*\}', text, re.DOTALL)
+                        if match:
+                            return json.loads(match.group())
+        except Exception:
+            pass
+        return None
+
+
     @staticmethod
     async def negotiate_counter_offer(
         farmer_min: float,

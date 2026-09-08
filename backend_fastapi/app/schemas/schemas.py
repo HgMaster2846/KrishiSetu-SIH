@@ -154,8 +154,16 @@ class MandiPriceResponse(BaseModel):
     max_price: float
     trend: str
     best_mandi: str
+    source: Optional[str] = 'APMC Benchmark'
+    arrival_date: Optional[str] = None
+    last_updated: Optional[str] = None
     mandis: List[MandiMarketItem] = []
     history_7d: List[float] = []
+
+class MandiSyncRequest(BaseModel):
+    api_key: Optional[str] = None
+    state: Optional[str] = None
+    commodity: Optional[str] = None
 
 # Logistics Schemas
 class TruckRouteResponse(BaseModel):

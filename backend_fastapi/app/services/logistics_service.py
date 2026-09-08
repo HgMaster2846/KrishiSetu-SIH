@@ -51,3 +51,46 @@ class LogisticsService:
             
         results.sort(key=lambda x: (not x["is_recommended"], -x["farmer_savings"]))
         return results
+
+    @classmethod
+    def get_top_logistics_pitch(
+        cls,
+        village: str,
+        district: str,
+        destination: str,
+        quantity_kg: float,
+        db: Session
+    ) -> Dict[str, Any]:
+        """
+        Detects trucks going to the same mandi/destination with available capacity
+        and generates spoken recommendation pitch for the AI Hotline.
+        """
+        trucks = cls.find_pooled_trucks(village, district, destination, quantity_kg, db)
+        if not trucks:
+            return {
+                "has_pooled_truck": False,
+                "spoken_pitch": "",
+                "best_truck": None,
+                "savings": 0.0
+            }
+            
+        best = trucks[0]
+        dest_display = best["destination"]
+        shared_cost = best["shared_cost_total"]
+        solo_cost = best["solo_cost_total"]
+        savings = best["farmer_savings"]
+        
+        spoken_pitch = (
+            f"Aapke gaon se kal {dest_display} ke liye truck ja raha hai. "
+            f"Is truck se bhejne par transport ₹{solo_cost:g} ki jagah sirf ₹{shared_cost:g} padega."
+        )
+        
+        return {
+            "has_pooled_truck": True,
+            "spoken_pitch": spoken_pitch,
+            "best_truck": best,
+            "savings": savings,
+            "shared_cost": shared_cost,
+            "solo_cost": solo_cost
+        }
+
