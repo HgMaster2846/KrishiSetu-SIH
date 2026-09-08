@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: krishisetu-ai
+    env: python
+    buildCommand: pip install -r backend_fastapi/requirements.txt && pip install httpx python-multipart uvicorn
+    startCommand: python backend_fastapi/run.py
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: DATABASE_URL
+        value: "sqlite:///./krishisetu.db"
+      - key: SMS_PROVIDER
+        value: "mock"

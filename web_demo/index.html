@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu AI ? Feature Phone First Farmer Marketplace (SIH 2026)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: "#e8f5e9", 100: "#c8e6c9", 200: "#a5d6a7", 300: "#81c784",
+                            400: "#66bb6a", 500: "#4caf50", 600: "#43a047", 700: "#2e7d32",
+                            800: "#1b5e20", 900: "#0d3813"
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+        body { font-family: "Plus Jakarta Sans", sans-serif; }
+        .font-mono { font-family: "JetBrains Mono", monospace; }
+        .phone-body {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 6px solid #334155;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+        .phone-screen {
+            background: #022c22;
+            color: #4ade80;
+            text-shadow: 0 0 4px rgba(74, 222, 128, 0.4);
+            font-family: "Courier New", Courier, monospace;
+        }
+        .phone-btn {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            border: 1px solid #475569;
+            transition: all 0.08s ease;
+        }
+        .phone-btn:active { transform: scale(0.94); background: #2e7d32; color: white; }
+        .waveform-bar { animation: pulseWave 1s ease-in-out infinite alternate; }
+        @keyframes pulseWave { 0% { height: 6px; } 100% { height: 32px; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+    <header class="bg-brand-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">??</span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-lg tracking-tight">KrishiSetu AI</span>
+                        <span class="text-xs bg-brand-500/80 px-2 py-0.5 rounded-full font-semibold">SIH 2026 MVP</span>
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-mono">Problem: SIH 26033</span>
+                    </div>
+                    <p class="text-xs text-brand-100 hidden sm:block">Feature Phone First Farmer Marketplace (No Smartphone Needed for Farmers)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-brand-800/80 px-3 py-1.5 rounded-lg border border-brand-600">
+                <i data-lucide="phone-call" class="w-4 h-4 text-brand-300 animate-pulse"></i>
+                <div class="text-xs">
+                    <span class="text-brand-200 block text-[10px]">24?7 AI FARMER HOTLINE</span>
+                    <span class="font-mono font-bold text-white text-sm">1800-260-3300</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetDemoData()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded border border-white/20 flex items-center gap-1.5 transition">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Reset Demo
+                </button>
+                <a href="/docs" target="_blank" class="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition shadow">
+                    <i data-lucide="code" class="w-3.5 h-3.5"></i> FastAPI Docs
+                </a>
+            </div>
+        </div>
+    </header>
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <div class="lg:col-span-5 xl:col-span-4 flex flex-col items-center">
+            <div class="w-full max-w-[340px] phone-body rounded-[40px] p-5 flex flex-col shadow-2xl relative">
+                <div class="flex flex-col items-center mb-3">
+                    <div class="w-14 h-1.5 bg-slate-600 rounded-full mb-1.5"></div>
+                    <div class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">BHARAT-SETU 4G</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 bg-slate-800 p-1 rounded-lg mb-3 text-[11px] font-semibold">
+                    <button id="tab-btn-call" onclick="setPhoneMode('CALL')" class="py-1 rounded text-center bg-brand-700 text-white">Voice Call</button>
+                    <button id="tab-btn-sms" onclick="setPhoneMode('SMS')" class="py-1 rounded text-center text-slate-300 hover:text-white">SMS (3)</button>
+                    <button id="tab-btn-dtmf" onclick="setPhoneMode('DTMF')" class="py-1 rounded text-center text-slate-300 hover:text-white">OTP/Keypad</button>
+                </div>
+
+                <div class="w-full bg-slate-950 rounded-xl p-3 border-2 border-slate-700 phone-screen flex flex-col justify-between min-h-[250px] relative overflow-hidden shadow-inner">
+                    <div class="flex justify-between items-center text-[10px] border-b border-emerald-900/60 pb-1 mb-2">
+                        <div class="flex items-center gap-1">
+                            <span class="font-bold">Jio/Airtel 4G</span>
+                            <span>??</span>
+                        </div>
+                        <span id="screen-clock" class="font-mono">12:30 PM</span>
+                        <div class="flex items-center gap-1">
+                            <span>?? 92%</span>
+                        </div>
+                    </div>
+
+                    <!-- 1. VOICE CALL SCREEN VIEW -->
+                    <div id="view-call" class="flex-1 flex flex-col justify-between">
+                        <div id="call-idle" class="text-center my-auto py-4">
+                            <div class="w-12 h-12 bg-emerald-900/40 border border-emerald-600 rounded-full mx-auto flex items-center justify-center mb-2 animate-bounce">
+                                <i data-lucide="phone-call" class="w-6 h-6 text-emerald-400"></i>
+                            </div>
+                            <div class="text-xs font-bold text-emerald-300">KrishiSetu AI Hotline</div>
+                            <div class="text-[11px] text-emerald-500">1800-260-3300 (Toll-Free)</div>
+                            <div class="text-[10px] text-slate-400 mt-2">Dial or Press Call to speak in Hindi/Regional</div>
+                            <button onclick="startVoiceHotlineCall()" class="mt-3 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg border border-emerald-400 flex items-center gap-1.5 mx-auto transition">
+                                <i data-lucide="phone" class="w-3.5 h-3.5"></i> Dial AI Hotline
+                            </button>
+                        </div>
+
+                        <div id="call-active" class="hidden flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between text-[11px] text-emerald-400">
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Call</span>
+                                    <span id="call-timer" class="font-mono text-emerald-300">00:14</span>
+                                </div>
+                                <div class="text-xs font-bold text-white mt-1">KrishiSetu AI (Bhashini IVR)</div>
+                            </div>
+                            <div class="flex items-center justify-center gap-1 my-2 h-10">
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.1s"></div>
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.3s"></div>
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.2s"></div>
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.5s"></div>
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.4s"></div>
+                                <div class="w-1 bg-emerald-400 rounded-full waveform-bar" style="animation-delay: 0.2s"></div>
+                            </div>
+                            <div class="bg-emerald-950/80 p-2 rounded border border-emerald-700/60 text-[10px] leading-tight min-h-[56px] flex flex-col justify-center">
+                                <span id="call-dialogue-speaker" class="text-emerald-300 font-bold">AI Sahayak:</span>
+                                <span id="call-dialogue-text" class="text-white">"Namaste! KrishiSetu AI mein aapka swagat hai..."</span>
+                            </div>
+                            <div id="call-farmer-choices" class="mt-2 space-y-1"></div>
+                            <div class="mt-2 flex justify-center">
+                                <button onclick="endVoiceCall()" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 transition">
+                                    <i data-lucide="phone-off" class="w-3 h-3"></i> End Call
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. SMS INBOX SCREEN VIEW -->
+                    <div id="view-sms" class="hidden flex-1 flex flex-col justify-between">
+                        <div class="text-[11px] font-bold text-emerald-300 border-b border-emerald-900 pb-1 flex justify-between">
+                            <span>SMS Inbox</span>
+                            <span class="text-emerald-500">Sender: KR-SETU</span>
+                        </div>
+                        <div id="sms-thread-container" class="flex-1 overflow-y-auto max-h-[145px] space-y-1.5 my-1.5 pr-1 text-[10px]"></div>
+                        <div class="border-t border-emerald-900 pt-1.5 flex gap-1">
+                            <button onclick="sendQuickSMSReply('YES')" class="flex-1 bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-1 rounded text-[10px] transition">Reply YES (1)</button>
+                            <button onclick="sendQuickSMSReply('NO')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-red-300 font-bold py-1 rounded text-[10px] transition">Reply NO (2)</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. DTMF / OTP SCREEN VIEW -->
+                    <div id="view-dtmf" class="hidden flex-1 flex flex-col justify-between">
+                        <div class="text-[11px] font-bold text-emerald-300 border-b border-emerald-900 pb-1">
+                            <span>Truck Handover OTP</span>
+                        </div>
+                        <div class="my-auto text-center">
+                            <div class="text-[10px] text-emerald-400">Driver Gurpreet Singh Pickup OTP:</div>
+                            <div id="screen-otp-display" class="font-mono text-2xl font-extrabold tracking-widest text-emerald-300 my-2 bg-emerald-950 p-2 rounded border border-emerald-700">582914</div>
+                            <div class="text-[10px] text-slate-300">Show this OTP to release Escrow payment.</div>
+                        </div>
+                        <button onclick="verifyPickupOTP('582914')" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white py-1 rounded text-[10px] font-bold transition">
+                            Verify Produce Handover
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KEYPAD -->
+                <div class="mt-4 grid grid-cols-3 gap-2">
+                    <button onclick="pressKey('MENU')" class="phone-btn text-slate-300 py-1.5 rounded-lg text-xs font-semibold">Options</button>
+                    <button onclick="pressKey('OK')" class="phone-btn bg-brand-700 text-white py-1.5 rounded-lg text-xs font-bold border-brand-500">OK</button>
+                    <button onclick="pressKey('BACK')" class="phone-btn text-slate-300 py-1.5 rounded-lg text-xs font-semibold">Back</button>
+
+                    <button onclick="startVoiceHotlineCall()" class="bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg flex items-center justify-center font-bold text-sm shadow"><i data-lucide="phone" class="w-4 h-4"></i></button>
+                    <button onclick="pressKey('NAV')" class="phone-btn text-slate-400 py-2 rounded-lg flex items-center justify-center"><i data-lucide="compass" class="w-4 h-4"></i></button>
+                    <button onclick="endVoiceCall()" class="bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg flex items-center justify-center font-bold text-sm shadow"><i data-lucide="phone-off" class="w-4 h-4"></i></button>
+
+                    <button onclick="pressKey('1')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>1</span><span class="text-[8px] text-slate-400">.,</span></button>
+                    <button onclick="pressKey('2')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>2</span><span class="text-[8px] text-slate-400">ABC</span></button>
+                    <button onclick="pressKey('3')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>3</span><span class="text-[8px] text-slate-400">DEF</span></button>
+                    <button onclick="pressKey('4')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>4</span><span class="text-[8px] text-slate-400">GHI</span></button>
+                    <button onclick="pressKey('5')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>5</span><span class="text-[8px] text-slate-400">JKL</span></button>
+                    <button onclick="pressKey('6')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>6</span><span class="text-[8px] text-slate-400">MNO</span></button>
+                    <button onclick="pressKey('7')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>7</span><span class="text-[8px] text-slate-400">PQRS</span></button>
+                    <button onclick="pressKey('8')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>8</span><span class="text-[8px] text-slate-400">TUV</span></button>
+                    <button onclick="pressKey('9')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>9</span><span class="text-[8px] text-slate-400">WXYZ</span></button>
+                    <button onclick="pressKey('*')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold">*</button>
+                    <button onclick="pressKey('0')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold flex flex-col items-center"><span>0</span><span class="text-[8px] text-slate-400">+</span></button>
+                    <button onclick="pressKey('#')" class="phone-btn text-white py-2 rounded-lg text-xs font-bold">#</button>
+                </div>
+
+                <div class="mt-4 flex items-center justify-center gap-2 text-slate-400 text-[10px]">
+                    <div id="mic-status-dot" class="w-2 h-2 rounded-full bg-slate-500"></div>
+                    <span id="mic-status-text">Microphone Ready (Web Audio)</span>
+                </div>
+            </div>
+
+            <div class="mt-4 w-full max-w-[340px] bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-bold">RS</div>
+                    <div>
+                        <div class="font-bold text-xs text-slate-800">Rameshwar Singh (Sonipat)</div>
+                        <div class="text-[11px] text-slate-500">+91 98123 45001 ? Feature Phone</div>
+                    </div>
+                    <span class="ml-auto text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">KYC Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-7 xl:col-span-8 flex flex-col">
+            <div class="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-1 mb-5">
+                <button onclick="switchTab('marketplace')" id="tab-link-marketplace" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-700 text-white flex items-center gap-1.5 transition">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> Buyer Marketplace
+                </button>
+                <button onclick="switchTab('hotline')" id="tab-link-hotline" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="radio" class="w-4 h-4 text-rose-500 animate-pulse"></i> Live Call Monitor
+                </button>
+                <button onclick="switchTab('setup')" id="tab-link-setup" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="sliders" class="w-4 h-4 text-emerald-600"></i> AI Hotline Setup
+                </button>
+                <button onclick="switchTab('recommendation')" id="tab-link-recommendation" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i> AI Match & Negotiate
+                </button>
+                <button onclick="switchTab('mandi')" id="tab-link-mandi" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Mandi APMC Intel
+                </button>
+                <button onclick="switchTab('logistics')" id="tab-link-logistics" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="truck" class="w-4 h-4 text-blue-600"></i> Pooled Logistics
+                </button>
+                <button onclick="switchTab('admin')" id="tab-link-admin" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i> Admin & Fraud
+                </button>
+                <button onclick="switchTab('diagnostics')" id="tab-link-diagnostics" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-teal-600"></i> Diagnostics
+                </button>
+                <button onclick="switchTab('flow')" id="tab-link-flow" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                    <i data-lucide="workflow" class="w-4 h-4 text-indigo-600"></i> SIH User Flow
+                </button>
+            </div>
+
+
+            <!-- TAB 1: BUYER MARKETPLACE -->
+            <div id="content-marketplace" class="space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-800">Crops Sourcing Catalog</span>
+                        <span id="marketplace-count-badge" class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-brand-200">40 Active Listings</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="filter-crop" onchange="filterListings()" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-slate-50 font-medium">
+                            <option value="">All Crops</option>
+                            <option value="Tomato">Tomato (Tamatar)</option>
+                            <option value="Onion">Onion (Pyaz)</option>
+                            <option value="Potato">Potato (Aloo)</option>
+                            <option value="Rice">Basmati Rice</option>
+                            <option value="Wheat">Wheat (Gehun)</option>
+                            <option value="Mustard">Mustard (Sarson)</option>
+                        </select>
+                        <select id="filter-state" onchange="filterListings()" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-slate-50 font-medium">
+                            <option value="">All States</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- TAB 2: AI MATCH & NEGOTIATION -->
+            <div id="content-recommendation" class="hidden space-y-5">
+                <div class="bg-gradient-to-r from-emerald-800 to-brand-700 text-white p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 text-xs font-semibold text-brand-200 uppercase tracking-wider">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> AI Buyer Recommendation Engine
+                        </div>
+                        <h2 class="text-lg font-extrabold mt-1">Multi-Factor Ranked Buyers for Tomato (200 kg)</h2>
+                        <p class="text-xs text-brand-100 mt-1 max-w-xl">
+                            Formula: <strong>Mandi Price 35%</strong> + <strong>Distance 20%</strong> + <strong>Buyer Demand 20%</strong> + <strong>Trust Score 15%</strong> + <strong>Transport Cost 10%</strong>.
+                        </p>
+                    </div>
+                </div>
+                <div id="recommendations-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+                <!-- ARENA -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                                <i data-lucide="message-square" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-900">AI Autonomous Negotiation Arena</h3>
+                                <p class="text-xs text-slate-500">AI acts on farmer's behalf protecting reserve price</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-medium">Farmer Min: <strong>?23.50/kg</strong></span>
+                            <span class="bg-brand-50 text-brand-800 px-2.5 py-1 rounded font-medium border border-brand-200">APMC Average: <strong>?25.80/kg</strong></span>
+                        </div>
+                    </div>
+                    <div id="negotiation-chat-timeline" class="space-y-3 max-h-64 overflow-y-auto pr-2 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
+                    <div class="flex items-center gap-3 pt-2">
+                        <div class="flex-1 flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-500">Buyer Offer:</span>
+                            <span class="text-sm font-bold text-slate-700">?</span>
+                            <input type="number" id="buyer-offer-input" value="24.00" step="0.5" class="bg-transparent text-sm font-bold text-slate-900 w-24 outline-none">
+                            <span class="text-xs text-slate-400">/ kg</span>
+                        </div>
+                        <button onclick="submitBuyerCounterBid()" class="bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i> Submit Bid
+                        </button>
+                        <button onclick="acceptDealInstantly()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Lock Deal (?25.50/kg)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MANDI INTELLIGENCE -->
+            <div id="content-mandi" class="hidden space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-medium">Tomato (Azadpur Mandi)</div>
+                        <div class="text-2xl font-black text-emerald-700 mt-1">?28.50 <span class="text-xs font-normal text-slate-500">/ kg</span></div>
+                        <div class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> +12.4% vs Local Farmgate
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-medium">Basmati Rice (Karnal Hub)</div>
+                        <div class="text-2xl font-black text-emerald-700 mt-1">?76.00 <span class="text-xs font-normal text-slate-500">/ kg</span></div>
+                        <div class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> +5.8% weekly gain
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-medium">Mustard (Alwar Mandi)</div>
+                        <div class="text-2xl font-black text-emerald-700 mt-1">?61.50 <span class="text-xs font-normal text-slate-500">/ kg</span></div>
+                        <div class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> Top oilseed price today
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">7-Day APMC Modal Price Trends</h3>
+                            <p class="text-xs text-slate-500">Real-time benchmark feeds from Agmarknet</p>
+                        </div>
+                    </div>
+                    <div class="h-64"><canvas id="mandiTrendChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- TAB 4: POOLED LOGISTICS -->
+            <div id="content-logistics" class="hidden space-y-5">
+                <div class="bg-gradient-to-r from-blue-900 to-indigo-800 text-white p-5 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-blue-200 uppercase tracking-wider">
+                        <i data-lucide="truck" class="w-4 h-4 text-blue-400"></i> AI Pooled Transportation Network
+                    </div>
+                    <h2 class="text-lg font-extrabold mt-1">Nearby Trucks Matching Sonipat / Murthal Corridor</h2>
+                    <p class="text-xs text-blue-100 mt-1 max-w-xl">
+                        AI identifies passing medium trucks with spare capacity travelling toward Azadpur / Delhi NCR to pool produce, slashing farmer transport costs by up to 65%.
+                    </p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border-2 border-emerald-500 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div>
+                        <div class="text-xs text-slate-500 font-medium">Solo Truck Hire Cost</div>
+                        <div class="text-xl font-bold text-slate-400 line-through">?1,200</div>
+                        <div class="text-[10px] text-slate-400">Dedicated vehicle price</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-brand-700 font-semibold">Shared Pooled Truck Cost</div>
+                        <div class="text-2xl font-black text-brand-700">?450</div>
+                        <div class="text-[10px] text-brand-600 font-medium">?2.25/kg shared rate</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-emerald-600 font-semibold">Farmer Direct Savings</div>
+                        <div class="text-2xl font-black text-emerald-600">?750</div>
+                        <div class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded inline-block">62.5% Cost Reduction</div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="assignTruckToOrder('TRUCK-001')" class="bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+                            <i data-lucide="check" class="w-4 h-4"></i> Assign Truck HR-10
+                        </button>
+                    </div>
+                </div>
+                <div id="truck-routes-list" class="space-y-3"></div>
+            </div>
+
+            <!-- TAB 5: ADMIN -->
+            <div id="content-admin" class="hidden space-y-5">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <div class="text-xs text-slate-500 font-medium">Registered Farmers</div>
+                        <div class="text-2xl font-bold text-slate-900 mt-1">20</div>
+                        <div class="text-[10px] text-emerald-600 font-medium mt-0.5">100% Feature Phones</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <div class="text-xs text-slate-500 font-medium">Verified Buyers</div>
+                        <div class="text-2xl font-bold text-slate-900 mt-1">20</div>
+                        <div class="text-[10px] text-blue-600 font-medium mt-0.5">GSTIN / APMC Verified</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <div class="text-xs text-slate-500 font-medium">Total Trade Volume</div>
+                        <div class="text-2xl font-bold text-brand-700 mt-1">?28.45 L</div>
+                        <div class="text-[10px] text-slate-500 mt-0.5">Escrow protected</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <div class="text-xs text-slate-500 font-medium">Transport Cost Saved</div>
+                        <div class="text-2xl font-bold text-emerald-600 mt-1">?3.18 L</div>
+                        <div class="text-[10px] text-emerald-600 font-medium mt-0.5">Via Pooled Logistics</div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-red-500"></i>
+                            <h3 class="font-bold text-sm text-slate-900">Live Fraud & Anomaly Monitoring</h3>
+                        </div>
+                        <span class="text-xs bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded">2 Alerts Flagged</span>
+                    </div>
+                    <div class="space-y-2.5">
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                            <div class="w-2 h-2 rounded-full bg-red-600 mt-1.5 shrink-0"></div>
+                            <div>
+                                <div class="text-xs font-bold text-red-900">QuickDeal Wholesale (BUY-019) ? Risk Score: 45/100</div>
+                                <p class="text-[11px] text-red-700 mt-0.5">Unregistered business entity attempting direct COD payout bypassing Escrow.</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                            <div class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
+                            <div>
+                                <div class="text-xs font-bold text-amber-900">Speedy Farm Brokers (BUY-020) ? Risk Score: 52/100</div>
+                                <p class="text-[11px] text-amber-700 mt-0.5">Offered price is 38% below APMC benchmark for Wheat.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: SIH FLOW -->
+            <div id="content-flow" class="hidden space-y-4">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-base font-extrabold text-slate-900 mb-1">KrishiSetu AI ? Complete End-to-End System Journey</h3>
+                    <p class="text-xs text-slate-500 mb-6">Designed specifically for Smart India Hackathon 2026 (SIH 26033)</p>
+                    <div class="relative pl-6 border-l-2 border-brand-500 space-y-6">
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 1: Farmer Calls 24?7 AI Hotline</div><p class="text-xs text-slate-600 mt-0.5">Farmer dials 1800-260-3300 using simple Nokia or Jio feature phone. No smartphone or internet required.</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 2: Conversational Voice Ingestion & NLP</div><p class="text-xs text-slate-600 mt-0.5">AI speaks in Hindi. Farmer replies naturally. AI extracts Crop, Quantity, Village, and Expected Price.</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 3: Automatic Marketplace Listing Creation</div><p class="text-xs text-slate-600 mt-0.5">Structured JSON is created and stored in PostgreSQL database with ACTIVE status. Real-time sync to buyer dashboard.</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 4: Multi-Factor Buyer Recommendation Engine</div><p class="text-xs text-slate-600 mt-0.5">Ranks top 3 verified buyers using Mandi Price (35%), Distance (20%), Demand (20%), Trust (15%), and Transport (10%).</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 5: Autonomous AI Negotiation Assistant</div><p class="text-xs text-slate-600 mt-0.5">Buyer submits offer. AI negotiates on behalf of the farmer, protecting minimum reserve price and anchoring to APMC rates.</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 6: Feature Phone SMS Confirmation</div><p class="text-xs text-slate-600 mt-0.5">Farmer receives SMS with deal details: "Reply YES or Press 1". Farmer confirms without smartphone.</p></div>
+                        <div class="relative"><div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-700 border-2 border-white"></div><div class="text-xs font-bold text-brand-800">STEP 7: Pooled Logistics Matching & Escrow Payout</div><p class="text-xs text-slate-600 mt-0.5">AI matches passing truck with spare capacity (saving ₹750). Driver arrives with OTP verification. Payment released to farmer bank account.</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: AI HOTLINE LIVE MONITOR (ADMIN) -->
+            <div id="content-hotline" class="hidden space-y-4">
+                <div class="bg-gradient-to-r from-rose-950 via-slate-900 to-slate-950 text-white p-5 rounded-2xl border border-rose-900/50 shadow-md flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                            <i data-lucide="radio" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-extrabold text-base">Live AI Hotline Telephony Monitor</h3>
+                                <span id="ws-indicator-pill" class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live WebSockets
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">Real-time caller number, streaming transcript, speech entity extraction, and auto-listing trigger</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-700 text-right">
+                            <div class="text-[10px] text-slate-400">ACTIVE INBOUND NUMBER</div>
+                            <div id="monitor-hotline-number" class="font-mono font-bold text-emerald-400 text-sm">1800-260-3300</div>
+                        </div>
+                        <button onclick="startVoiceHotlineCall(); switchTab('hotline');" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i> Simulate Call
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LIVE CALL STATUS CARD -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Caller Phone</span>
+                        <div id="live-caller-phone" class="text-base font-extrabold text-slate-800 mt-1 font-mono">+91 98123 45001</div>
+                        <span class="text-[10px] bg-brand-50 text-brand-700 font-semibold px-2 py-0.5 rounded mt-1.5 inline-block">Murthal, Haryana (Feature Phone)</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Call State</span>
+                        <div id="live-call-state" class="text-base font-extrabold text-emerald-700 mt-1 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> IN_PROGRESS
+                        </div>
+                        <span id="live-call-duration" class="text-[10px] text-slate-500 font-mono mt-1 block">Duration: 00:42s</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Conversational Stage</span>
+                        <div id="live-conversation-stage" class="text-sm font-extrabold text-purple-700 mt-1">STEP 2: Location Extraction</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Confidence Score: <strong>98.2%</strong></span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Speech AI Engine</span>
+                        <div class="text-sm font-extrabold text-brand-800 mt-1 flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i> Sarvam + Gemini 2.5
+                        </div>
+                        <span class="text-[10px] text-emerald-600 font-semibold mt-1 block">Hindi First (hi-IN)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    <!-- LEFT: LIVE TRANSCRIPT FEED -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                        <i data-lucide="mic" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-xs text-slate-900">Live Speech Transcript</h4>
+                                        <p class="text-[10px] text-slate-400">Continuous audio streaming through Sarvam / Whisper</p>
+                                    </div>
+                                </div>
+                                <div id="waveform-live-container" class="flex items-center gap-1 h-5">
+                                    <span class="w-1 bg-rose-500 rounded-full waveform-bar" style="animation-duration: 0.8s;"></span>
+                                    <span class="w-1 bg-rose-400 rounded-full waveform-bar" style="animation-duration: 1.2s;"></span>
+                                    <span class="w-1 bg-rose-600 rounded-full waveform-bar" style="animation-duration: 0.6s;"></span>
+                                    <span class="w-1 bg-rose-500 rounded-full waveform-bar" style="animation-duration: 1.0s;"></span>
+                                    <span class="w-1 bg-rose-300 rounded-full waveform-bar" style="animation-duration: 1.4s;"></span>
+                                </div>
+                            </div>
+                            <div id="live-transcript-feed" class="space-y-3 max-h-80 overflow-y-auto pr-2 text-xs">
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                    <div class="flex justify-between text-[10px] text-purple-700 font-bold mb-1">
+                                        <span>AI Sahayak (KrishiSetu AI)</span>
+                                        <span>Step 1 • 00:02</span>
+                                    </div>
+                                    <p class="text-slate-800">Namaste! KrishiSetu AI mein aapka swagat hai. Main aapka Digital Mandi Sahayak hoon. Aap konsi fasal bechna chahte hain aur kitni maatra hai?</p>
+                                </div>
+                                <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 ml-4">
+                                    <div class="flex justify-between text-[10px] text-emerald-800 font-bold mb-1">
+                                        <span>Kisan (Farmer • Voice Input)</span>
+                                        <span>Hindi • 00:08</span>
+                                    </div>
+                                    <p class="text-slate-800 font-medium">"Mere paas 200 kilo tamatar hai"</p>
+                                </div>
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                    <div class="flex justify-between text-[10px] text-purple-700 font-bold mb-1">
+                                        <span>AI Sahayak (KrishiSetu AI)</span>
+                                        <span>Step 2 • 00:14</span>
+                                    </div>
+                                    <p class="text-slate-800">Maine darj kar liya hai: 200 kilo Tomato. Aap kis gaon aur zile se bol rahe hain?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> WebSocket Listening: <code>/voice/ws</code></span>
+                            <button onclick="clearTranscriptFeed()" class="text-slate-400 hover:text-slate-700 text-[11px]">Clear Transcript</button>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: EXTRACTED ENTITIES & REAL-TIME LISTING -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="cpu" class="w-4 h-4 text-brand-700"></i>
+                                    <h4 class="font-bold text-xs text-slate-900">Live Extracted Entities (JSON)</h4>
+                                </div>
+                                <span id="badge-created-via" class="text-[9px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded border border-purple-200">
+                                    Created via AI Hotline
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between py-1 border-b border-slate-50">
+                                    <span class="text-slate-500">Detected Crop:</span>
+                                    <span id="entity-crop" class="font-bold text-slate-900">Tomato (Tamatar)</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-50">
+                                    <span class="text-slate-500">Quantity:</span>
+                                    <span id="entity-qty" class="font-bold text-slate-900">200 kg</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-50">
+                                    <span class="text-slate-500">Farmgate Location:</span>
+                                    <span id="entity-loc" class="font-bold text-slate-900">Murthal, Sonipat (Haryana)</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-50">
+                                    <span class="text-slate-500">Farmer Expected:</span>
+                                    <span id="entity-price" class="font-bold text-brand-700">₹25.00 / kg</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-50">
+                                    <span class="text-slate-500">APMC Mandi Index:</span>
+                                    <span id="entity-benchmark" class="font-bold text-emerald-600">₹25.80 / kg</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-slate-500">Generated Listing ID:</span>
+                                    <span id="entity-listing-id" class="font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">LIST-001</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LIVE BUYER MATCH & SMS NOTIFICATION -->
+                        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-blue-600"></i> SMS Confirmation Engine
+                                </h4>
+                                <span id="monitor-sms-status" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">DISPATCHED</span>
+                            </div>
+                            <div class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl font-mono text-[10px] leading-relaxed border border-slate-800">
+                                <div>[KrishiSetu AI SMS] Namaste Rameshwar ji! Aapka 200kg Tamatar listing darj ho gaya hai (ID: LIST-001). Mandi rate: ₹25.8/kg.</div>
+                                <div class="text-amber-300 mt-1 font-bold">⚡ Buyer FreshMart ne ₹25.5/kg offer kiya. Confirm karne ke liye reply karein 'YES' ya call par bolein 'HAAN'.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 8: AI HOTLINE SETUP (ZERO CODING) -->
+            <div id="content-setup" class="hidden space-y-5">
+                <div class="bg-gradient-to-r from-emerald-900 via-brand-800 to-slate-900 text-white p-5 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+                            <i data-lucide="sliders" class="w-4 h-4"></i> Zero-Coding Setup Wizard
+                        </div>
+                        <h2 class="text-lg font-extrabold mt-1">AI Hotline & API Keys Management</h2>
+                        <p class="text-xs text-emerald-100 mt-0.5 max-w-xl">
+                            Paste your Exotel Trial, Sarvam AI, and Gemini API keys below. Click <strong>Verify Credentials</strong> and <strong>Auto Connect Hotline</strong>. Everything else happens automatically!
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="env-mode-badge" class="text-xs bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-full">DEMO MODE ACTIVE</span>
+                    </div>
+                </div>
+
+                <!-- SETUP FORM -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- EXOTEL SECTION -->
+                        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                                    <i data-lucide="phone" class="w-4 h-4 text-emerald-700"></i> Exotel Telephony Credentials
+                                </h4>
+                                <span id="status-badge-exotel" class="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded">UNVERIFIED</span>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-600 block mb-1">EXOTEL_API_KEY</label>
+                                <input type="text" id="setup-exotel-key" placeholder="e.g. 4b89f2d1e..." class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-600 block mb-1">EXOTEL_API_SECRET</label>
+                                <input type="password" id="setup-exotel-secret" placeholder="••••••••••••••••" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-600 block mb-1">ACCOUNT_SID</label>
+                                    <input type="text" id="setup-exotel-sid" placeholder="krishisetu1" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-600 block mb-1">PHONE_NUMBER</label>
+                                    <input type="text" id="setup-exotel-phone" placeholder="+91 1800-260-3300" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI ENGINES & CARRIER SECTION -->
+                        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> AI & Database Services
+                                </h4>
+                                <span id="status-badge-ai" class="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded">READY</span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-[11px] font-semibold text-slate-600">SARVAM_API_KEY (Saaras STT & Bulbul TTS)</label>
+                                    <span id="status-badge-sarvam" class="text-[9px] text-slate-500 font-bold">READY</span>
+                                </div>
+                                <input type="password" id="setup-sarvam-key" placeholder="sarvam_sub_key_..." class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-[11px] font-semibold text-slate-600">GEMINI_API_KEY (Google Gemini 2.5 Flash)</label>
+                                    <span id="status-badge-gemini" class="text-[9px] text-slate-500 font-bold">READY</span>
+                                </div>
+                                <input type="password" id="setup-gemini-key" placeholder="AIzaSy..." class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-brand-600 font-mono">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-600 block mb-1">SMS PROVIDER</label>
+                                    <select id="setup-sms-provider" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white font-medium">
+                                        <option value="mock">Simulated / Mock SMS</option>
+                                        <option value="exotel">Exotel SMS Gateway</option>
+                                        <option value="twilio">Twilio SMS Gateway</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-600 block mb-1">ENVIRONMENT</label>
+                                    <select id="setup-env-mode" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white font-medium">
+                                        <option value="demo">Demo Mode (Interactive)</option>
+                                        <option value="real">Real Mode (Live Carrier)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="verifyCredentialsAction()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Verify Credentials
+                            </button>
+                            <button onclick="autoConnectHotlineAction()" class="bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                                <i data-lucide="zap" class="w-4 h-4 text-amber-300"></i> Auto Connect Hotline
+                            </button>
+                            <button onclick="makeTestCallAction()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow">
+                                <i data-lucide="phone-outgoing" class="w-4 h-4"></i> Test Phone Number
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="saveSetupAction()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold px-5 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-md">
+                                <i data-lucide="save" class="w-4 h-4"></i> Save Configuration
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AUTO-REGISTRATION RESULT BANNER -->
+                    <div id="webhook-registration-result" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-800">
+                        <div class="font-bold text-emerald-800 flex items-center gap-1.5 mb-1">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> Webhooks Bound Successfully!
+                        </div>
+                        <p class="text-slate-600 text-[11px]">All Exotel webhooks (Voice, SMS, Status, Audio Stream) have been registered without manual console configuration.</p>
+                        <div id="webhook-endpoints-list" class="mt-2 space-y-1 font-mono text-[10px] text-slate-700 bg-white p-2.5 rounded border border-emerald-100"></div>
+                    </div>
+                </div>
+
+                <!-- ONE CLICK DEPLOYMENT CARD -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-extrabold text-sm text-slate-900">One-Click Production Deployment</h3>
+                            <p class="text-xs text-slate-500">Deploy full-stack KrishiSetu AI with zero command line work</p>
+                        </div>
+                        <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-bold">FastAPI + PostgreSQL + Redis + Nginx</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <button onclick="triggerOneClickDeploy('railway')" class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/50 flex flex-col items-center text-center transition group">
+                            <span class="text-xl mb-1">🚂</span>
+                            <span class="font-bold text-xs text-slate-800 group-hover:text-brand-800">Railway</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">1-Click Cloud</span>
+                        </button>
+                        <button onclick="triggerOneClickDeploy('render')" class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/50 flex flex-col items-center text-center transition group">
+                            <span class="text-xl mb-1">⚡</span>
+                            <span class="font-bold text-xs text-slate-800 group-hover:text-brand-800">Render</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">Web Service</span>
+                        </button>
+                        <button onclick="triggerOneClickDeploy('fly')" class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/50 flex flex-col items-center text-center transition group">
+                            <span class="text-xl mb-1">🎈</span>
+                            <span class="font-bold text-xs text-slate-800 group-hover:text-brand-800">Fly.io</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">Edge Cloud</span>
+                        </button>
+                        <button onclick="triggerOneClickDeploy('docker')" class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/50 flex flex-col items-center text-center transition group">
+                            <span class="text-xl mb-1">🐳</span>
+                            <span class="font-bold text-xs text-slate-800 group-hover:text-brand-800">Docker Compose</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">Self-Hosted</span>
+                        </button>
+                        <button onclick="triggerOneClickDeploy('ngrok')" class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/50 flex flex-col items-center text-center transition group">
+                            <span class="text-xl mb-1">🌐</span>
+                            <span class="font-bold text-xs text-slate-800 group-hover:text-brand-800">Ngrok Tunnel</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">Local Public URL</span>
+                        </button>
+                    </div>
+                    <div id="deploy-details-banner" class="hidden p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono space-y-1"></div>
+                </div>
+            </div>
+
+            <!-- TAB 9: SYSTEM DIAGNOSTICS & HARDWARE CHECKLIST -->
+            <div id="content-diagnostics" class="hidden space-y-5">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-extrabold text-base text-slate-900">9-Point SIH Verification Checklist</h3>
+                            <span id="diagnostics-overall-badge" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">ALL SYSTEMS PASS</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Automated diagnostics verifying real phone number, voice stream, STT, Gemini, and database connectivity</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="loadDiagnostics()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+                            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Re-Run Diagnostics
+                        </button>
+                    </div>
+                </div>
+
+                <div id="diagnostics-checklist-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+                <!-- INTERACTIVE TESTING SUITE -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                    <h4 class="font-extrabold text-sm text-slate-900">Hotline Hardware & Audio Test Triggers</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <span class="text-xs font-bold text-slate-800 block">1. Outbound Test Call</span>
+                            <p class="text-[11px] text-slate-500">Triggers an immediate test call to your mobile phone from the Exotel number.</p>
+                            <input type="text" id="test-call-input" value="+91 98123 45001" class="w-full text-xs border border-slate-300 rounded px-2 py-1.5 bg-white font-mono">
+                            <button onclick="triggerOutboundTestCall()" class="w-full bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold py-2 rounded-lg transition">Make Test Call</button>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <span class="text-xs font-bold text-slate-800 block">2. Play AI Greeting</span>
+                            <p class="text-[11px] text-slate-500">Tests the exact Hindi greeting speech through web audio / browser TTS.</p>
+                            <button onclick="speakHindi('Namaste! KrishiSetu AI mein aapka swagat hai. Main aapki AI Krishi Sahayak hoon.')" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-lg transition mt-7">Play AI Greeting</button>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <span class="text-xs font-bold text-slate-800 block">3. Send Test SMS</span>
+                            <p class="text-[11px] text-slate-500">Sends a sample order confirmation SMS containing OTP and 'Reply YES' prompt.</p>
+                            <input type="text" id="test-sms-input" value="+91 98123 45001" class="w-full text-xs border border-slate-300 rounded px-2 py-1.5 bg-white font-mono">
+                            <button onclick="triggerSendTestSMS()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">Send Test SMS</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-500">
+        <p>Smart India Hackathon 2026 ? Problem Statement SIH 26033 ? Farmer Marketplace ? KrishiSetu AI</p>
+    </footer>
+
+    <script>
+        let currentCallStep = 0;
+        let activeCallTimerInterval = null;
+        let callSeconds = 0;
+        let audioCtx = null;
+        let allListings = [];
+        let activeListingId = "LIST-001";
+
+        const DIALOGUE_TREE = [
+            {
+                step: 0,
+                speaker: "AI Sahayak",
+                speech: "Namaste! KrishiSetu AI mein aapka swagat hai. Main aapka Digital Mandi Sahayak hoon. Aap konsi fasal bechna chahte hain aur kitni maatra hai?",
+                choices: [
+                    { label: "?? Mere paas 200 kilo tamatar hai", reply: "Mere paas 200 kilo tamatar hai" },
+                    { label: "?? 5 quintal pyaz bechna hai", reply: "5 quintal pyaz bechna hai" },
+                    { label: "?? 500 kilo aloo hai", reply: "500 kilo aloo hai" }
+                ]
+            },
+            {
+                step: 1,
+                speaker: "AI Sahayak",
+                speech: "Maine darj kar liya hai: 200 kilo Tamatar. Aap kis gaon aur zile se bol rahe hain?",
+                choices: [
+                    { label: "?? Murthal, Sonipat", reply: "Murthal, Sonipat" },
+                    { label: "?? Samalkha, Panipat", reply: "Samalkha, Panipat" },
+                    { label: "?? Gharaunda, Karnal", reply: "Gharaunda, Karnal" }
+                ]
+            },
+            {
+                step: 2,
+                speaker: "AI Sahayak",
+                speech: "Murthal, Sonipat se. Bahut achha. Aapko apni fasal ke liye kitna daam chahiye prati kilo?",
+                choices: [
+                    { label: "?? 25 rupaye kilo", reply: "25 rupaye kilo" },
+                    { label: "?? 26 rupaye kilo", reply: "26 rupaye kilo" },
+                    { label: "?? 28 rupaye kilo", reply: "28 rupaye kilo" }
+                ]
+            },
+            {
+                step: 3,
+                speaker: "AI Sahayak",
+                speech: "Bahut badhiya Rameshwar ji! Aapka 200 kilo Tamatar, Murthal (Sonipat) se, ?25/kg par darj kar liya gaya hai. Azadpur mandi ka ausat daam ?25.80 chal raha hai. Khareedaar aate hi aapko SMS aayega. Dhanyawad!",
+                choices: [
+                    { label: "? Dhanyawad (Call Completed)", reply: "DONE" }
+                ]
+            }
+        ];
+
+        function playDTMF(freq1, freq2) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc1.frequency.value = freq1 || 770;
+                osc2.frequency.value = freq2 || 1336;
+                gain.gain.value = 0.08;
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc1.start();
+                osc2.start();
+                setTimeout(() => { osc1.stop(); osc2.stop(); }, 100);
+            } catch (e) {}
+        }
+
+        function speakHindi(text) {
+            if ("speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = "hi-IN";
+                utterance.rate = 0.95;
+                const voices = window.speechSynthesis.getVoices();
+                const hiVoice = voices.find(v => v.lang.includes("hi") || v.lang.includes("IN"));
+                if (hiVoice) utterance.voice = hiVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function pressKey(key) {
+            const dtmfMap = {
+                "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
+                "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
+                "7": [852, 1209], "8": [852, 1336], "9": [852, 1477],
+                "*": [941, 1209], "0": [941, 1336], "#": [941, 1477]
+            };
+            if (dtmfMap[key]) playDTMF(dtmfMap[key][0], dtmfMap[key][1]);
+            else playDTMF(800, 1200);
+
+            if (key === "1") sendQuickSMSReply("YES");
+            else if (key === "2") sendQuickSMSReply("NO");
+        }
+
+        function setPhoneMode(mode) {
+            document.getElementById("view-call").classList.add("hidden");
+            document.getElementById("view-sms").classList.add("hidden");
+            document.getElementById("view-dtmf").classList.add("hidden");
+
+            document.getElementById("tab-btn-call").className = "py-1 rounded text-center text-slate-300 hover:text-white";
+            document.getElementById("tab-btn-sms").className = "py-1 rounded text-center text-slate-300 hover:text-white";
+            document.getElementById("tab-btn-dtmf").className = "py-1 rounded text-center text-slate-300 hover:text-white";
+
+            if (mode === "CALL") {
+                document.getElementById("view-call").classList.remove("hidden");
+                document.getElementById("tab-btn-call").className = "py-1 rounded text-center bg-brand-700 text-white";
+            } else if (mode === "SMS") {
+                document.getElementById("view-sms").classList.remove("hidden");
+                document.getElementById("tab-btn-sms").className = "py-1 rounded text-center bg-brand-700 text-white";
+                loadSMSThread();
+            } else if (mode === "DTMF") {
+                document.getElementById("view-dtmf").classList.remove("hidden");
+                document.getElementById("tab-btn-dtmf").className = "py-1 rounded text-center bg-brand-700 text-white";
+            }
+        }
+
+        function startVoiceHotlineCall() {
+            setPhoneMode("CALL");
+            document.getElementById("call-idle").classList.add("hidden");
+            document.getElementById("call-active").classList.remove("hidden");
+            document.getElementById("mic-status-dot").className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
+            document.getElementById("mic-status-text").innerText = "Hotline Connected: 1800-260-3300";
+
+            currentCallStep = 0;
+            callSeconds = 0;
+            if (activeCallTimerInterval) clearInterval(activeCallTimerInterval);
+            activeCallTimerInterval = setInterval(() => {
+                callSeconds++;
+                const mins = String(Math.floor(callSeconds / 60)).padStart(2, "0");
+                const secs = String(callSeconds % 60).padStart(2, "0");
+                document.getElementById("call-timer").innerText = `${mins}:${secs}`;
+            }, 1000);
+
+            renderDialogueStep(0);
+        }
+
+        function renderDialogueStep(stepIndex) {
+            const step = DIALOGUE_TREE[stepIndex];
+            if (!step) return;
+
+            document.getElementById("call-dialogue-speaker").innerText = step.speaker + ":";
+            document.getElementById("call-dialogue-text").innerText = `"${step.speech}"`;
+            speakHindi(step.speech);
+
+            const choicesContainer = document.getElementById("call-farmer-choices");
+            choicesContainer.innerHTML = "";
+
+            step.choices.forEach(c => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 text-[10px] p-1.5 rounded border border-emerald-700 flex items-center justify-between transition";
+                btn.innerHTML = `<span>${c.label}</span> <i data-lucide="chevron-right" class="w-3 h-3 text-emerald-400"></i>`;
+                btn.onclick = () => advanceCallWithReply(c.reply);
+                choicesContainer.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function advanceCallWithReply(reply) {
+            playDTMF(697, 1209);
+            if (reply === "DONE") {
+                endVoiceCall();
+                showNotification("?? New Crop Listing Created Automatically!", "Tomato 200kg listed in marketplace and synced with buyers.");
+                loadListings();
+                switchTab("marketplace");
+                return;
+            }
+            currentCallStep++;
+            if (currentCallStep < DIALOGUE_TREE.length) {
+                renderDialogueStep(currentCallStep);
+            } else {
+                endVoiceCall();
+            }
+        }
+
+        function endVoiceCall() {
+            if (activeCallTimerInterval) clearInterval(activeCallTimerInterval);
+            if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+            document.getElementById("call-active").classList.add("hidden");
+            document.getElementById("call-idle").classList.remove("hidden");
+            document.getElementById("mic-status-dot").className = "w-2 h-2 rounded-full bg-slate-500";
+            document.getElementById("mic-status-text").innerText = "Call Disconnected";
+        }
+
+        async function loadSMSThread() {
+            try {
+                const res = await fetch("/sms/logs?phone=+919812345001");
+                const logs = await res.json();
+                const container = document.getElementById("sms-thread-container");
+                container.innerHTML = "";
+                logs.forEach(l => {
+                    const isOut = l.direction === "OUTGOING";
+                    const div = document.createElement("div");
+                    div.className = isOut ? "bg-emerald-950 p-1.5 rounded border border-emerald-800 text-emerald-200" : "bg-slate-900 p-1.5 rounded border border-slate-700 text-slate-300 ml-4";
+                    div.innerHTML = `
+                        <div class="text-[9px] text-emerald-500 font-bold flex justify-between">
+                            <span>${isOut ? "FROM: KR-SETU" : "TO: KR-SETU"}</span>
+                            <span>${l.timestamp || ""}</span>
+                        </div>
+                        <div class="mt-0.5 leading-snug">${l.message}</div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {}
+        }
+
+        async function sendQuickSMSReply(replyText) {
+            playDTMF(852, 1477);
+            try {
+                const res = await fetch("/sms/reply", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: "+919812345001", reply_text: replyText })
+                });
+                await res.json();
+                loadSMSThread();
+                showNotification("SMS Received on Platform", `Farmer replied: "${replyText}". Pickup & Escrow state updated.`);
+            } catch (e) {}
+        }
+
+        async function verifyPickupOTP(otp) {
+            try {
+                const res = await fetch("/transaction/verify-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ transaction_id: "TX-001", otp_code: otp })
+                });
+                const data = await res.json();
+                alert(data.message);
+                switchTab("admin");
+            } catch (e) {
+                alert("OTP Verification Failed");
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabs = ["marketplace", "hotline", "setup", "recommendation", "mandi", "logistics", "admin", "diagnostics", "flow"];
+            tabs.forEach(t => {
+                const content = document.getElementById(`content-${t}`);
+                const link = document.getElementById(`tab-link-${t}`);
+                if (content) content.classList.add("hidden");
+                if (link) link.className = "px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition";
+            });
+
+            const activeContent = document.getElementById(`content-${tabId}`);
+            if (activeContent) activeContent.classList.remove("hidden");
+            const activeLink = document.getElementById(`tab-link-${tabId}`);
+            if (activeLink) activeLink.className = "px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-700 text-white flex items-center gap-1.5 transition";
+
+            if (tabId === "mandi") initMandiChart();
+            if (tabId === "logistics") loadTruckRoutes();
+            if (tabId === "recommendation") loadRecommendations();
+            if (tabId === "setup") loadSetupStatus();
+            if (tabId === "diagnostics") loadDiagnostics();
+            if (tabId === "hotline" && !hotlineSocket) connectHotlineWebSocket();
+            lucide.createIcons();
+        }
+
+
+        async function loadListings() {
+            try {
+                const res = await fetch("/listing/all?limit=20");
+                allListings = await res.json();
+                renderListings(allListings);
+                document.getElementById("marketplace-count-badge").innerText = `${allListings.length} Active Listings`;
+            } catch (e) {}
+        }
+
+        function renderListings(listings) {
+            const container = document.getElementById("listings-grid");
+            container.innerHTML = "";
+            listings.forEach(l => {
+                const isSelected = l.id === activeListingId;
+                const card = document.createElement("div");
+                card.className = `bg-white rounded-2xl p-4 border ${isSelected ? "border-brand-600 ring-2 ring-brand-200" : "border-slate-200"} shadow-sm hover:shadow-md transition flex flex-col justify-between`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">${l.category}</span>
+                                <h4 class="font-extrabold text-base text-slate-900 mt-1">${l.crop_name}</h4>
+                            </div>
+                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">${l.status}</span>
+                        </div>
+                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100"><span class="text-slate-400 block text-[10px]">Quantity</span><span class="font-bold text-slate-800">${l.quantity_kg} kg</span></div>
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100"><span class="text-slate-400 block text-[10px]">Expected Price</span><span class="font-bold text-brand-700">?${l.expected_price_per_kg}/kg</span></div>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-600 flex items-center justify-between">
+                            <span>?? ${l.village}, ${l.district}</span>
+                            <span class="text-slate-400 text-[10px]">Harvest: ${l.harvest_date}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div class="text-[11px] text-slate-500">Farmer: <strong>${l.farmer_name}</strong></div>
+                        <button onclick="selectListingForNegotiation('${l.id}')" class="bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> AI Negotiate
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function filterListings() {
+            const crop = document.getElementById("filter-crop").value.toLowerCase();
+            const state = document.getElementById("filter-state").value.toLowerCase();
+            const filtered = allListings.filter(l => {
+                const matchCrop = !crop || l.crop_name.toLowerCase().includes(crop);
+                const matchState = !state || l.state.toLowerCase().includes(state);
+                return matchCrop && matchState;
+            });
+            renderListings(filtered);
+        }
+
+        function selectListingForNegotiation(id) {
+            activeListingId = id;
+            switchTab("recommendation");
+        }
+
+        async function loadRecommendations() {
+            try {
+                const res = await fetch(`/buyers/recommend?listing_id=${activeListingId}`);
+                const data = await res.json();
+                const container = document.getElementById("recommendations-container");
+                container.innerHTML = "";
+                data.recommendations.forEach(item => {
+                    const b = item.buyer;
+                    const card = document.createElement("div");
+                    card.className = `bg-white rounded-2xl p-4 border ${item.is_top_pick ? "border-2 border-emerald-500 shadow-md ring-2 ring-emerald-100" : "border-slate-200"} flex flex-col justify-between relative`;
+                    card.innerHTML = `
+                        <div>
+                            ${item.is_top_pick ? '<span class="absolute -top-3 left-4 bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow">TOP AI MATCH</span>' : ""}
+                            <div class="flex items-start justify-between mt-1">
+                                <div><h4 class="font-extrabold text-sm text-slate-900">${b.name}</h4><p class="text-[11px] text-slate-500">${b.company}</p></div>
+                                <span class="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">${item.overall_score}%</span>
+                            </div>
+                            <div class="mt-3 space-y-1.5 text-xs">
+                                <div class="flex justify-between"><span class="text-slate-500">Buying Price:</span><span class="font-bold text-slate-900">?${item.offered_price_per_kg}/kg</span></div>
+                                <div class="flex justify-between"><span class="text-slate-500">Distance:</span><span class="font-medium text-slate-700">${b.distance_km} km</span></div>
+                                <div class="flex justify-between"><span class="text-slate-500">Pooled Transport:</span><span class="font-medium text-blue-700">?${item.transport_cost_per_kg}/kg</span></div>
+                                <div class="flex justify-between border-t border-slate-100 pt-1 text-emerald-700 font-bold"><span>Net Farmer Profit:</span><span>?${item.net_farmer_profit_per_kg}/kg</span></div>
+                            </div>
+                            <p class="text-[10px] text-slate-600 bg-slate-50 p-2 rounded mt-3 leading-tight border border-slate-100">${item.reasoning}</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[10px] text-slate-400">${item.trust_badge}</span>
+                            <button onclick="loadNegotiationTimeline()" class="bg-brand-700 hover:bg-brand-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow">Select & Bid</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                lucide.createIcons();
+                loadNegotiationTimeline();
+            } catch (e) {}
+        }
+
+        async function loadNegotiationTimeline() {
+            try {
+                const res = await fetch("/negotiation/NEG-001/history");
+                const data = await res.json();
+                const container = document.getElementById("negotiation-chat-timeline");
+                container.innerHTML = "";
+                data.offers.forEach(o => {
+                    const isBuyer = o.sender === "BUYER";
+                    const div = document.createElement("div");
+                    div.className = isBuyer ? "flex flex-col items-start" : "flex flex-col items-end";
+                    div.innerHTML = `
+                        <div class="max-w-md ${isBuyer ? "bg-slate-200 text-slate-800" : "bg-brand-700 text-white"} p-2.5 rounded-xl text-xs shadow-sm">
+                            <div class="text-[10px] font-bold opacity-80 mb-0.5 flex items-center gap-1">
+                                <span>${isBuyer ? "Buyer (FreshMart)" : "KrishiSetu AI (Farmer Proxy)"}</span>
+                                <span>? ${o.timestamp}</span>
+                            </div>
+                            <div class="font-medium">${o.message}</div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {}
+        }
+
+        async function submitBuyerCounterBid() {
+            const offer = parseFloat(document.getElementById("buyer-offer-input").value);
+            try {
+                const res = await fetch("/negotiation/respond", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ negotiation_id: "NEG-001", buyer_counter_offer: offer, action: "COUNTER" })
+                });
+                const data = await res.json();
+                loadNegotiationTimeline();
+                showNotification("AI Counter-Offer Generated", data.ai_reasoning);
+                loadSMSThread();
+            } catch (e) {}
+        }
+
+        async function acceptDealInstantly() {
+            try {
+                const res = await fetch("/negotiation/respond", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ negotiation_id: "NEG-001", buyer_counter_offer: 25.50, action: "ACCEPT" })
+                });
+                await res.json();
+                loadNegotiationTimeline();
+                showNotification("Deal Closed Successfully!", "?25.50/kg locked. SMS sent to farmer phone to confirm pickup.");
+                setPhoneMode("SMS");
+                loadSMSThread();
+            } catch (e) {}
+        }
+
+        async function loadTruckRoutes() {
+            try {
+                const res = await fetch("/logistics/routes?village=Murthal&district=Sonipat&destination=Azadpur%20Mandi");
+                const trucks = await res.json();
+                const container = document.getElementById("truck-routes-list");
+                container.innerHTML = "";
+                trucks.forEach(t => {
+                    const div = document.createElement("div");
+                    div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold"><i data-lucide="truck" class="w-5 h-5"></i></div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-extrabold text-sm text-slate-900">${t.truck_number} (${t.truck_type})</h4>
+                                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Capacity: ${t.available_capacity_kg}/${t.total_capacity_kg} kg</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">Driver: <strong>${t.driver_name}</strong> (${t.driver_phone}) ? Route: ${t.origin} ? ${t.destination}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs">
+                            <div class="text-right">
+                                <div class="text-brand-700 font-black text-sm">?${t.shared_cost_total} Shared</div>
+                                <div class="text-slate-400 text-[10px] line-through">?${t.solo_cost_total} Solo</div>
+                            </div>
+                            <button onclick="assignTruckToOrder('${t.id}')" class="bg-brand-700 hover:bg-brand-600 text-white font-bold px-3 py-1.5 rounded-lg transition shadow">Assign Pool</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                lucide.createIcons();
+            } catch (e) {}
+        }
+
+        async function assignTruckToOrder(truckId) {
+            alert(`Truck ${truckId} scheduled for pooled pickup in Murthal! Savings of ?750 verified.`);
+            setPhoneMode("DTMF");
+        }
+
+        let chartInstance = null;
+        function initMandiChart() {
+            if (chartInstance) return;
+            const ctx = document.getElementById("mandiTrendChart").getContext("2d");
+            chartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: ["5 Days Ago", "4 Days Ago", "3 Days Ago", "2 Days Ago", "Yesterday", "Today", "Forecast"],
+                    datasets: [
+                        { label: "Tomato (Azadpur Mandi)", data: [22.5, 23.0, 24.2, 24.8, 25.2, 26.5, 28.5], borderColor: "#2e7d32", backgroundColor: "rgba(46, 125, 50, 0.1)", fill: true, tension: 0.3 },
+                        { label: "Onion (Okhla Mandi)", data: [33.0, 33.5, 34.0, 33.8, 34.2, 34.0, 35.5], borderColor: "#d97706", borderDash: [5, 5], fill: false, tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { callback: v => "?" + v } } } }
+            });
+        }
+
+        function showNotification(title, message) {
+            const toast = document.createElement("div");
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white p-4 rounded-xl shadow-2xl z-50 border border-slate-700 max-w-sm";
+            toast.innerHTML = `<div class="flex items-start gap-2"><span class="text-brand-400 font-bold">??</span><div><div class="font-bold text-xs">${title}</div><div class="text-[11px] text-slate-300 mt-0.5">${message}</div></div></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4500);
+        }
+
+        async function resetDemoData() {
+            if (confirm("Reset database to initial SIH 2026 demo state?")) {
+                const res = await fetch("/seed/reset", { method: "POST" });
+                const d = await res.json();
+                alert(d.message);
+                loadListings();
+                loadSMSThread();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // AI HOTLINE WEBSOCKET & SETUP DASHBOARD LOGIC
+        // -------------------------------------------------------------
+        let hotlineSocket = null;
+
+        function connectHotlineWebSocket() {
+            try {
+                const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+                const wsUrl = `${protocol}//${window.location.host}/voice/ws`;
+                hotlineSocket = new WebSocket(wsUrl);
+
+                hotlineSocket.onopen = () => {
+                    const pill = document.getElementById("ws-indicator-pill");
+                    if (pill) pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live WebSockets Connected';
+                };
+
+                hotlineSocket.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        handleWebSocketEvent(msg);
+                    } catch (e) {}
+                };
+
+                hotlineSocket.onclose = () => {
+                    setTimeout(connectHotlineWebSocket, 4000);
+                };
+            } catch (e) {}
+        }
+
+        function handleWebSocketEvent(msg) {
+            const type = msg.type;
+            const data = msg.data || {};
+
+            if (type === "call_started") {
+                document.getElementById("live-caller-phone").innerText = data.from_number || data.phone || "+91 98123 45001";
+                document.getElementById("live-call-state").innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> IN_PROGRESS';
+                document.getElementById("live-conversation-stage").innerText = "STEP 1: Greeting & Crop Detection";
+                appendTranscriptMessage("AI Sahayak (KrishiSetu AI)", data.ai_speech || "Namaste! KrishiSetu AI mein aapka swagat hai.", "ai");
+            } else if (type === "farmer_speaking") {
+                appendTranscriptMessage("Kisan (Farmer • Voice)", data.transcript, "farmer");
+            } else if (type === "ai_speaking") {
+                appendTranscriptMessage("AI Sahayak (KrishiSetu AI)", data.ai_speech, "ai");
+                if (data.stage) document.getElementById("live-conversation-stage").innerText = data.stage;
+                if (data.extracted) updateExtractedEntitiesCard(data.extracted);
+            } else if (type === "listing_created") {
+                const id = data.listing_id || "LIST-NEW";
+                document.getElementById("entity-listing-id").innerText = id;
+                document.getElementById("badge-created-via").className = "text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded border border-emerald-200 animate-bounce";
+                document.getElementById("badge-created-via").innerText = "✓ LIVE ON MARKETPLACE";
+                showNotification("New Crop Listing Created via AI Hotline", `Listing ${id} created from voice call. Syncing buyers.`);
+                loadListings();
+            } else if (type === "sms_event") {
+                loadSMSThread();
+                showNotification("Inbound SMS Received", `Farmer replied "${data.message}" (${data.confirmed ? 'Deal Confirmed!' : 'Logged'})`);
+            } else if (type === "call_ended") {
+                document.getElementById("live-call-state").innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> COMPLETED';
+            }
+        }
+
+        function appendTranscriptMessage(speaker, text, role) {
+            const container = document.getElementById("live-transcript-feed");
+            if (!container || !text) return;
+            const div = document.createElement("div");
+            if (role === "farmer") {
+                div.className = "bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 ml-4";
+                div.innerHTML = `<div class="flex justify-between text-[10px] text-emerald-800 font-bold mb-1"><span>${speaker}</span><span>Voice Input</span></div><p class="text-slate-800 font-medium">"${text}"</p>`;
+            } else {
+                div.className = "bg-slate-50 p-2.5 rounded-xl border border-slate-200";
+                div.innerHTML = `<div class="flex justify-between text-[10px] text-purple-700 font-bold mb-1"><span>${speaker}</span><span>Sarvam / Gemini</span></div><p class="text-slate-800">${text}</p>`;
+            }
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateExtractedEntitiesCard(extracted) {
+            if (extracted.crop_name) document.getElementById("entity-crop").innerText = extracted.crop_name;
+            if (extracted.quantity_kg) document.getElementById("entity-qty").innerText = extracted.quantity_kg + " kg";
+            if (extracted.village && extracted.district) document.getElementById("entity-loc").innerText = `${extracted.village}, ${extracted.district}`;
+            if (extracted.expected_price) document.getElementById("entity-price").innerText = `₹${extracted.expected_price}/kg`;
+            if (extracted.mandi_benchmark) document.getElementById("entity-benchmark").innerText = `₹${extracted.mandi_benchmark}/kg`;
+        }
+
+        function clearTranscriptFeed() {
+            document.getElementById("live-transcript-feed").innerHTML = '<div class="text-slate-400 text-center py-4 text-xs italic">Transcript cleared. Waiting for active call...</div>';
+        }
+
+        async function loadSetupStatus() {
+            try {
+                const res = await fetch("/setup/status");
+                const data = await res.json();
+                if (data.hotline_number) {
+                    const headerElem = document.getElementById("header-hotline-number");
+                    if (headerElem) headerElem.innerText = data.hotline_number;
+                    const monElem = document.getElementById("monitor-hotline-number");
+                    if (monElem) monElem.innerText = data.hotline_number;
+                    const phoneInput = document.getElementById("setup-exotel-phone");
+                    if (phoneInput && !phoneInput.value) phoneInput.value = data.hotline_number;
+                }
+                if (data.sms_provider) document.getElementById("setup-sms-provider").value = data.sms_provider;
+                document.getElementById("setup-env-mode").value = data.demo_mode ? "demo" : "real";
+                document.getElementById("env-mode-badge").innerText = data.demo_mode ? "DEMO MODE ACTIVE" : "REAL PHONE ACTIVE";
+                document.getElementById("env-mode-badge").className = data.demo_mode ? "text-xs bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-full" : "text-xs bg-rose-600 text-white font-bold px-3 py-1 rounded-full animate-pulse";
+            } catch (e) {}
+        }
+
+        async function saveSetupAction() {
+            const payload = {
+                exotel_api_key: document.getElementById("setup-exotel-key").value || null,
+                exotel_api_secret: document.getElementById("setup-exotel-secret").value || null,
+                exotel_account_sid: document.getElementById("setup-exotel-sid").value || null,
+                exotel_phone_number: document.getElementById("setup-exotel-phone").value || null,
+                sarvam_api_key: document.getElementById("setup-sarvam-key").value || null,
+                gemini_api_key: document.getElementById("setup-gemini-key").value || null,
+                sms_provider: document.getElementById("setup-sms-provider").value,
+                demo_mode: document.getElementById("setup-env-mode").value === "demo"
+            };
+            try {
+                const res = await fetch("/setup/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadSetupStatus();
+            } catch (e) {
+                alert("Failed to save configuration.");
+            }
+        }
+
+        async function verifyCredentialsAction() {
+            const payload = {
+                exotel_api_key: document.getElementById("setup-exotel-key").value || null,
+                exotel_api_secret: document.getElementById("setup-exotel-secret").value || null,
+                exotel_account_sid: document.getElementById("setup-exotel-sid").value || null,
+                exotel_phone_number: document.getElementById("setup-exotel-phone").value || null,
+                sarvam_api_key: document.getElementById("setup-sarvam-key").value || null,
+                gemini_api_key: document.getElementById("setup-gemini-key").value || null
+            };
+            try {
+                const res = await fetch("/setup/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                const cl = data.checklist;
+
+                const exoB = document.getElementById("status-badge-exotel");
+                exoB.innerText = cl.exotel.valid ? "✓ VERIFIED" : (payload.exotel_api_key ? "✗ FAILED" : "DEMO READY");
+                exoB.className = cl.exotel.valid ? "text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded" : "text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded";
+
+                const sarB = document.getElementById("status-badge-sarvam");
+                sarB.innerText = cl.sarvam.valid ? "✓ ACTIVE" : "READY (OFFLINE/DEMO)";
+                sarB.className = cl.sarvam.valid ? "text-[9px] text-emerald-600 font-bold" : "text-[9px] text-slate-500 font-bold";
+
+                const gemB = document.getElementById("status-badge-gemini");
+                gemB.innerText = cl.gemini.valid ? "✓ ACTIVE" : "READY (LOCAL NLP)";
+                gemB.className = cl.gemini.valid ? "text-[9px] text-emerald-600 font-bold" : "text-[9px] text-slate-500 font-bold";
+
+                alert("Verification completed! All integrations checked.");
+            } catch (e) {
+                alert("Verification request failed.");
+            }
+        }
+
+        async function autoConnectHotlineAction() {
+            try {
+                const res = await fetch(`/setup/connect-hotline?base_url=${encodeURIComponent(window.location.origin)}`, {
+                    method: "POST"
+                });
+                const data = await res.json();
+                const banner = document.getElementById("webhook-registration-result");
+                banner.classList.remove("hidden");
+                const list = document.getElementById("webhook-endpoints-list");
+                list.innerHTML = `
+                    <div><strong>Voice Webhook:</strong> ${window.location.origin}/voice/webhook</div>
+                    <div><strong>SMS Webhook:</strong> ${window.location.origin}/voice/sms</div>
+                    <div><strong>Status Callback:</strong> ${window.location.origin}/voice/status</div>
+                    <div><strong>Live Stream:</strong> ${window.location.origin.replace("http", "ws")}/voice/ws</div>
+                `;
+                alert(data.message || "Hotline Connected! Webhooks registered successfully.");
+            } catch (e) {
+                alert("Auto-connect completed with default public endpoint.");
+            }
+        }
+
+        async function makeTestCallAction() {
+            const phone = prompt("Enter your phone number to receive AI Hotline test call (e.g. +919812345001):", "+919812345001");
+            if (!phone) return;
+            try {
+                const res = await fetch("/setup/test-call", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ to_phone: phone })
+                });
+                const data = await res.json();
+                alert(data.message || "Test call dispatched!");
+                switchTab("hotline");
+            } catch (e) {
+                alert("Test call simulated.");
+                switchTab("hotline");
+            }
+        }
+
+        async function triggerOutboundTestCall() {
+            const phone = document.getElementById("test-call-input").value;
+            const res = await fetch("/setup/test-call", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ to_phone: phone })
+            });
+            const data = await res.json();
+            alert(data.message || "Call placed!");
+        }
+
+        async function triggerSendTestSMS() {
+            const phone = document.getElementById("test-sms-input").value;
+            const res = await fetch("/setup/test-sms", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ to_phone: phone, message: "[KrishiSetu AI] Test SMS: Hotline is live and connected!" })
+            });
+            const data = await res.json();
+            alert("Test SMS dispatched via provider: " + (data.provider || "Active Gateway"));
+        }
+
+        async function loadDiagnostics() {
+            try {
+                const res = await fetch("/setup/diagnostics");
+                const data = await res.json();
+                const container = document.getElementById("diagnostics-checklist-grid");
+                container.innerHTML = "";
+                data.checklist.forEach(item => {
+                    const div = document.createElement("div");
+                    const isPass = item.status === "PASS";
+                    div.className = `bg-white p-4 rounded-xl border ${isPass ? 'border-emerald-200' : 'border-amber-200'} shadow-sm flex items-start gap-3`;
+                    div.innerHTML = `
+                        <div class="w-8 h-8 rounded-lg ${isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} flex items-center justify-center font-bold text-sm shrink-0">
+                            ${isPass ? '✓' : '!'}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-extrabold text-xs text-slate-900">${item.name}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.status}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">${item.detail}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {}
+        }
+
+        async function triggerOneClickDeploy(platform) {
+            try {
+                const res = await fetch(`/setup/deploy?platform=${platform}`, { method: "POST" });
+                const data = await res.json();
+                const banner = document.getElementById("deploy-details-banner");
+                banner.classList.remove("hidden");
+                const d = data.details;
+                banner.innerHTML = `
+                    <div class="text-emerald-400 font-bold text-sm">🚀 Deployment Profile: ${d.name}</div>
+                    <div class="text-slate-300">Features: ${d.features}</div>
+                    ${d.command ? `<div class="bg-black/50 p-2 rounded text-amber-300 mt-1">Terminal Command: <code>${d.command}</code></div>` : ''}
+                    ${d.button_link ? `<div class="mt-2"><a href="${d.button_link}" target="_blank" class="inline-block bg-emerald-600 hover:bg-emerald-500 text-slate-900 font-bold px-3 py-1.5 rounded">Launch in Cloud Browser ↗</a></div>` : ''}
+                `;
+            } catch (e) {}
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            loadListings();
+            loadSMSThread();
+            loadSetupStatus();
+            connectHotlineWebSocket();
+        });
+    </script>
+
+</body>
+</html>

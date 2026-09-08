@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: krishisetu_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: krishi
+      POSTGRES_PASSWORD: krishipassword2026
+      POSTGRES_DB: krishisetu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krishi -d krishisetu"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: krishisetu_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend_fastapi
+      dockerfile: Dockerfile
+    container_name: krishisetu_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://krishi:krishipassword2026@db:5432/krishisetu
+      - REDIS_URL=redis://redis:6379/0
+      - DEMO_MODE=true
+      - HOTLINE_NUMBER=+91 1800-260-3300
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./sample_data:/app/../sample_data
+      - ./web_demo:/app/../web_demo
+
+  nginx:
+    image: nginx:alpine
+    container_name: krishisetu_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

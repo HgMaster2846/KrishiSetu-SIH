@@ -1,0 +1,2409 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KrishiSetu AI Backend",
+    "description": "Smart India Hackathon 2026 (SIH 26033) - Feature Phone First Farmer Marketplace",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/voice/incoming": {
+      "post": {
+        "tags": [
+          "Voice Hotline"
+        ],
+        "summary": "Incoming Call",
+        "description": "Simulates incoming phone call from farmer on 1800-260-3300 hotline.",
+        "operationId": "incoming_call_voice_incoming_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceIncomingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceStepResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voice/step": {
+      "post": {
+        "tags": [
+          "Voice Hotline"
+        ],
+        "summary": "Voice Step",
+        "description": "Processes each conversational step in the voice hotline.",
+        "operationId": "voice_step_voice_step_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceStepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceStepResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voice/transcribe": {
+      "post": {
+        "tags": [
+          "Voice Hotline"
+        ],
+        "summary": "Transcribe Voice",
+        "description": "Speech-to-Text simulation (Whisper / AI4Bharat adapter).",
+        "operationId": "transcribe_voice_voice_transcribe_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceTranscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTranscribeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listing/create": {
+      "post": {
+        "tags": [
+          "Marketplace Listings"
+        ],
+        "summary": "Create Listing",
+        "operationId": "create_listing_listing_create_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listing/all": {
+      "get": {
+        "tags": [
+          "Marketplace Listings"
+        ],
+        "summary": "Get All Listings",
+        "operationId": "get_all_listings_listing_all_get",
+        "parameters": [
+          {
+            "name": "crop",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Crop"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ListingResponse"
+                  },
+                  "title": "Response Get All Listings Listing All Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listing/{id}": {
+      "get": {
+        "tags": [
+          "Marketplace Listings"
+        ],
+        "summary": "Get Listing By Id",
+        "operationId": "get_listing_by_id_listing__id__get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buyers/all": {
+      "get": {
+        "tags": [
+          "Buyer Intelligence"
+        ],
+        "summary": "Get All Buyers",
+        "operationId": "get_all_buyers_buyers_all_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BuyerResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get All Buyers Buyers All Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buyers/recommend": {
+      "get": {
+        "tags": [
+          "Buyer Intelligence"
+        ],
+        "summary": "Recommend Buyers",
+        "description": "Returns top 3 ranked buyers using exact 5-factor weighted algorithm:\nMandi Price (35%), Distance (20%), Demand (20%), Trust Score (15%), Transport Cost (10%).",
+        "operationId": "recommend_buyers_buyers_recommend_get",
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional listing ID to evaluate",
+              "title": "Listing Id"
+            },
+            "description": "Optional listing ID to evaluate"
+          },
+          {
+            "name": "crop",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Crop name if no listing ID",
+              "default": "Tomato",
+              "title": "Crop"
+            },
+            "description": "Crop name if no listing ID"
+          },
+          {
+            "name": "quantity_kg",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": 200.0,
+              "title": "Quantity Kg"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuyerRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/negotiation/start": {
+      "post": {
+        "tags": [
+          "AI Negotiation"
+        ],
+        "summary": "Start Negotiation",
+        "description": "Starts an AI-managed negotiation round on behalf of the farmer.",
+        "operationId": "start_negotiation_negotiation_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NegotiationStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NegotiationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/negotiation/respond": {
+      "post": {
+        "tags": [
+          "AI Negotiation"
+        ],
+        "summary": "Respond Negotiation",
+        "description": "Buyer counter-offers, accepts, or rejects. AI counter-acts protecting farmer reserve price.",
+        "operationId": "respond_negotiation_negotiation_respond_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NegotiationRespondRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NegotiationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/negotiation/{id}/history": {
+      "get": {
+        "tags": [
+          "AI Negotiation"
+        ],
+        "summary": "Get Negotiation History",
+        "operationId": "get_negotiation_history_negotiation__id__history_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NegotiationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mandi/prices": {
+      "get": {
+        "tags": [
+          "Mandi Intelligence"
+        ],
+        "summary": "Get All Mandi Prices",
+        "operationId": "get_all_mandi_prices_mandi_prices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MandiPriceResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get All Mandi Prices Mandi Prices Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mandi/crop/{crop_name}": {
+      "get": {
+        "tags": [
+          "Mandi Intelligence"
+        ],
+        "summary": "Get Crop Mandi Details",
+        "operationId": "get_crop_mandi_details_mandi_crop__crop_name__get",
+        "parameters": [
+          {
+            "name": "crop_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Crop Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MandiPriceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mandi/best-today": {
+      "get": {
+        "tags": [
+          "Mandi Intelligence"
+        ],
+        "summary": "Get Best Mandi Today",
+        "operationId": "get_best_mandi_today_mandi_best_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logistics/routes": {
+      "get": {
+        "tags": [
+          "Pooled Logistics"
+        ],
+        "summary": "Get All Routes",
+        "description": "Returns nearby trucks travelling along route with available capacity,\nshared cost, solo cost, and estimated savings.",
+        "operationId": "get_all_routes_logistics_routes_get",
+        "parameters": [
+          {
+            "name": "village",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Murthal",
+              "title": "Village"
+            }
+          },
+          {
+            "name": "district",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Sonipat",
+              "title": "District"
+            }
+          },
+          {
+            "name": "destination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Azadpur Mandi, Delhi",
+              "title": "Destination"
+            }
+          },
+          {
+            "name": "quantity_kg",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 200.0,
+              "title": "Quantity Kg"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TruckRouteResponse"
+                  },
+                  "title": "Response Get All Routes Logistics Routes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transaction/confirm": {
+      "post": {
+        "tags": [
+          "Transactions & Settlements"
+        ],
+        "summary": "Confirm Transaction",
+        "operationId": "confirm_transaction_transaction_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transaction/verify-otp": {
+      "post": {
+        "tags": [
+          "Transactions & Settlements"
+        ],
+        "summary": "Verify Otp",
+        "operationId": "verify_otp_transaction_verify_otp_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OTPVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OTPVerifyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/admin": {
+      "get": {
+        "tags": [
+          "Dashboards"
+        ],
+        "summary": "Get Admin Dashboard",
+        "operationId": "get_admin_dashboard_dashboard_admin_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/buyer": {
+      "get": {
+        "tags": [
+          "Dashboards"
+        ],
+        "summary": "Get Buyer Dashboard",
+        "operationId": "get_buyer_dashboard_dashboard_buyer_get",
+        "parameters": [
+          {
+            "name": "buyer_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "BUY-001",
+              "title": "Buyer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sms/send": {
+      "post": {
+        "tags": [
+          "SMS Gateway"
+        ],
+        "summary": "Send Sms",
+        "operationId": "send_sms_sms_send_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SMSSendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sms/reply": {
+      "post": {
+        "tags": [
+          "SMS Gateway"
+        ],
+        "summary": "Reply Sms",
+        "description": "Simulates incoming SMS from feature phone farmer (e.g. 'YES', '1', 'NO').",
+        "operationId": "reply_sms_sms_reply_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SMSReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sms/logs": {
+      "get": {
+        "tags": [
+          "SMS Gateway"
+        ],
+        "summary": "Get Sms Logs",
+        "operationId": "get_sms_logs_sms_logs_get",
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "+919812345001",
+              "title": "Phone"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SMSLogResponse"
+                  },
+                  "title": "Response Get Sms Logs Sms Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seed/reset": {
+      "post": {
+        "tags": [
+          "Demo Reset"
+        ],
+        "summary": "Reset Demo Data",
+        "description": "Drops and re-populates full fresh demo data across farmers, buyers, listings, routes, and mandi rates.",
+        "operationId": "reset_demo_data_seed_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Serve Demo Ui",
+        "operationId": "serve_demo_ui__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdminDashboardResponse": {
+        "properties": {
+          "total_farmers": {
+            "type": "integer",
+            "title": "Total Farmers"
+          },
+          "total_buyers": {
+            "type": "integer",
+            "title": "Total Buyers"
+          },
+          "active_listings": {
+            "type": "integer",
+            "title": "Active Listings"
+          },
+          "active_negotiations": {
+            "type": "integer",
+            "title": "Active Negotiations"
+          },
+          "completed_transactions": {
+            "type": "integer",
+            "title": "Completed Transactions"
+          },
+          "total_trade_volume_inr": {
+            "type": "number",
+            "title": "Total Trade Volume Inr"
+          },
+          "total_logistics_saved_inr": {
+            "type": "number",
+            "title": "Total Logistics Saved Inr"
+          },
+          "fraud_alerts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Fraud Alerts"
+          },
+          "recent_transactions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recent Transactions"
+          },
+          "recent_listings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recent Listings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_farmers",
+          "total_buyers",
+          "active_listings",
+          "active_negotiations",
+          "completed_transactions",
+          "total_trade_volume_inr",
+          "total_logistics_saved_inr",
+          "fraud_alerts",
+          "recent_transactions",
+          "recent_listings"
+        ],
+        "title": "AdminDashboardResponse"
+      },
+      "BuyerRecommendationItem": {
+        "properties": {
+          "buyer": {
+            "$ref": "#/components/schemas/BuyerResponse"
+          },
+          "overall_score": {
+            "type": "number",
+            "title": "Overall Score"
+          },
+          "offered_price_per_kg": {
+            "type": "number",
+            "title": "Offered Price Per Kg"
+          },
+          "transport_cost_per_kg": {
+            "type": "number",
+            "title": "Transport Cost Per Kg"
+          },
+          "net_farmer_profit_per_kg": {
+            "type": "number",
+            "title": "Net Farmer Profit Per Kg"
+          },
+          "total_estimated_payout": {
+            "type": "number",
+            "title": "Total Estimated Payout"
+          },
+          "is_top_pick": {
+            "type": "boolean",
+            "title": "Is Top Pick"
+          },
+          "trust_badge": {
+            "type": "string",
+            "title": "Trust Badge"
+          },
+          "reasoning": {
+            "type": "string",
+            "title": "Reasoning"
+          },
+          "score_breakdown": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Score Breakdown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "buyer",
+          "overall_score",
+          "offered_price_per_kg",
+          "transport_cost_per_kg",
+          "net_farmer_profit_per_kg",
+          "total_estimated_payout",
+          "is_top_pick",
+          "trust_badge",
+          "reasoning",
+          "score_breakdown"
+        ],
+        "title": "BuyerRecommendationItem"
+      },
+      "BuyerRecommendationResponse": {
+        "properties": {
+          "crop_name": {
+            "type": "string",
+            "title": "Crop Name"
+          },
+          "quantity_kg": {
+            "type": "number",
+            "title": "Quantity Kg"
+          },
+          "mandi_benchmark_price": {
+            "type": "number",
+            "title": "Mandi Benchmark Price"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/BuyerRecommendationItem"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop_name",
+          "quantity_kg",
+          "mandi_benchmark_price",
+          "recommendations"
+        ],
+        "title": "BuyerRecommendationResponse"
+      },
+      "BuyerResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "company": {
+            "type": "string",
+            "title": "Company"
+          },
+          "contact_person": {
+            "type": "string",
+            "title": "Contact Person"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "trust_score": {
+            "type": "integer",
+            "title": "Trust Score"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "total_deals": {
+            "type": "integer",
+            "title": "Total Deals"
+          },
+          "fraud_risk": {
+            "type": "string",
+            "title": "Fraud Risk"
+          },
+          "payment_terms": {
+            "type": "string",
+            "title": "Payment Terms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "company",
+          "contact_person",
+          "phone",
+          "email",
+          "district",
+          "state",
+          "distance_km",
+          "trust_score",
+          "verified",
+          "total_deals",
+          "fraud_risk",
+          "payment_terms"
+        ],
+        "title": "BuyerResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ListingCreate": {
+        "properties": {
+          "farmer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farmer Id",
+            "default": "FARM-001"
+          },
+          "farmer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farmer Name",
+            "default": "Rameshwar Singh"
+          },
+          "farmer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farmer Phone",
+            "default": "+919812345001"
+          },
+          "crop_name": {
+            "type": "string",
+            "title": "Crop Name"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "default": "Vegetable"
+          },
+          "quantity_kg": {
+            "type": "number",
+            "title": "Quantity Kg"
+          },
+          "expected_price_per_kg": {
+            "type": "number",
+            "title": "Expected Price Per Kg"
+          },
+          "farmer_min_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farmer Min Price"
+          },
+          "village": {
+            "type": "string",
+            "title": "Village"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "harvest_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Harvest Date",
+            "default": "2026-09-06"
+          },
+          "quality_grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Grade",
+            "default": "Grade A"
+          },
+          "created_via": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Via",
+            "default": "AI_HOTLINE_VOICE"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop_name",
+          "quantity_kg",
+          "expected_price_per_kg",
+          "village",
+          "district",
+          "state"
+        ],
+        "title": "ListingCreate"
+      },
+      "ListingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "farmer_id": {
+            "type": "string",
+            "title": "Farmer Id"
+          },
+          "farmer_name": {
+            "type": "string",
+            "title": "Farmer Name"
+          },
+          "farmer_phone": {
+            "type": "string",
+            "title": "Farmer Phone"
+          },
+          "crop_name": {
+            "type": "string",
+            "title": "Crop Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "quantity_kg": {
+            "type": "number",
+            "title": "Quantity Kg"
+          },
+          "expected_price_per_kg": {
+            "type": "number",
+            "title": "Expected Price Per Kg"
+          },
+          "farmer_min_price": {
+            "type": "number",
+            "title": "Farmer Min Price"
+          },
+          "current_best_offer": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Best Offer"
+          },
+          "village": {
+            "type": "string",
+            "title": "Village"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "harvest_date": {
+            "type": "string",
+            "title": "Harvest Date"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "default": ""
+          },
+          "quality_grade": {
+            "type": "string",
+            "title": "Quality Grade"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "ai_mandi_benchmark": {
+            "type": "number",
+            "title": "Ai Mandi Benchmark"
+          },
+          "recommended_buyer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Buyer Id"
+          },
+          "created_via": {
+            "type": "string",
+            "title": "Created Via"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "farmer_id",
+          "farmer_name",
+          "farmer_phone",
+          "crop_name",
+          "category",
+          "quantity_kg",
+          "expected_price_per_kg",
+          "farmer_min_price",
+          "village",
+          "district",
+          "state",
+          "harvest_date",
+          "quality_grade",
+          "status",
+          "ai_mandi_benchmark",
+          "created_via"
+        ],
+        "title": "ListingResponse"
+      },
+      "MandiMarketItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "modal": {
+            "type": "number",
+            "title": "Modal"
+          },
+          "min": {
+            "type": "number",
+            "title": "Min"
+          },
+          "max": {
+            "type": "number",
+            "title": "Max"
+          },
+          "arrival_tonnes": {
+            "type": "number",
+            "title": "Arrival Tonnes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "modal",
+          "min",
+          "max",
+          "arrival_tonnes"
+        ],
+        "title": "MandiMarketItem"
+      },
+      "MandiPriceResponse": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "title": "Crop"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit",
+            "default": "\u20b9/kg"
+          },
+          "modal_price": {
+            "type": "number",
+            "title": "Modal Price"
+          },
+          "min_price": {
+            "type": "number",
+            "title": "Min Price"
+          },
+          "max_price": {
+            "type": "number",
+            "title": "Max Price"
+          },
+          "trend": {
+            "type": "string",
+            "title": "Trend"
+          },
+          "best_mandi": {
+            "type": "string",
+            "title": "Best Mandi"
+          },
+          "mandis": {
+            "items": {
+              "$ref": "#/components/schemas/MandiMarketItem"
+            },
+            "type": "array",
+            "title": "Mandis",
+            "default": []
+          },
+          "history_7d": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "History 7D",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "category",
+          "modal_price",
+          "min_price",
+          "max_price",
+          "trend",
+          "best_mandi"
+        ],
+        "title": "MandiPriceResponse"
+      },
+      "NegotiationRespondRequest": {
+        "properties": {
+          "negotiation_id": {
+            "type": "string",
+            "title": "Negotiation Id"
+          },
+          "buyer_counter_offer": {
+            "type": "number",
+            "title": "Buyer Counter Offer"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action",
+            "default": "COUNTER"
+          }
+        },
+        "type": "object",
+        "required": [
+          "negotiation_id",
+          "buyer_counter_offer"
+        ],
+        "title": "NegotiationRespondRequest"
+      },
+      "NegotiationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "buyer_id": {
+            "type": "string",
+            "title": "Buyer Id"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name",
+            "default": ""
+          },
+          "crop_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crop Name",
+            "default": ""
+          },
+          "quantity_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Kg",
+            "default": 0.0
+          },
+          "farmer_min_price": {
+            "type": "number",
+            "title": "Farmer Min Price"
+          },
+          "current_buyer_offer": {
+            "type": "number",
+            "title": "Current Buyer Offer"
+          },
+          "current_ai_counter": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Ai Counter"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "ai_reasoning": {
+            "type": "string",
+            "title": "Ai Reasoning"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferHistoryItem"
+            },
+            "type": "array",
+            "title": "Offers",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_id",
+          "buyer_id",
+          "farmer_min_price",
+          "current_buyer_offer",
+          "status",
+          "ai_reasoning"
+        ],
+        "title": "NegotiationResponse"
+      },
+      "NegotiationStartRequest": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "buyer_id": {
+            "type": "string",
+            "title": "Buyer Id"
+          },
+          "buyer_offer_per_kg": {
+            "type": "number",
+            "title": "Buyer Offer Per Kg"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "buyer_id",
+          "buyer_offer_per_kg"
+        ],
+        "title": "NegotiationStartRequest"
+      },
+      "OTPVerifyRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "otp_code": {
+            "type": "string",
+            "title": "Otp Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "otp_code"
+        ],
+        "title": "OTPVerifyRequest"
+      },
+      "OTPVerifyResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "transaction_status": {
+            "type": "string",
+            "title": "Transaction Status"
+          },
+          "escrow_status": {
+            "type": "string",
+            "title": "Escrow Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message",
+          "transaction_status",
+          "escrow_status"
+        ],
+        "title": "OTPVerifyResponse"
+      },
+      "OfferHistoryItem": {
+        "properties": {
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "amount_per_kg": {
+            "type": "number",
+            "title": "Amount Per Kg"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender",
+          "amount_per_kg",
+          "message",
+          "timestamp"
+        ],
+        "title": "OfferHistoryItem"
+      },
+      "SMSLogResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "direction": {
+            "type": "string",
+            "title": "Direction"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "phone",
+          "direction",
+          "message",
+          "status",
+          "timestamp"
+        ],
+        "title": "SMSLogResponse"
+      },
+      "SMSReplyRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": "+919812345001"
+          },
+          "reply_text": {
+            "type": "string",
+            "title": "Reply Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reply_text"
+        ],
+        "title": "SMSReplyRequest"
+      },
+      "SMSSendRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "message"
+        ],
+        "title": "SMSSendRequest"
+      },
+      "TransactionConfirmRequest": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "buyer_id": {
+            "type": "string",
+            "title": "Buyer Id"
+          },
+          "truck_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Truck Route Id",
+            "default": "TRUCK-001"
+          },
+          "agreed_price_per_kg": {
+            "type": "number",
+            "title": "Agreed Price Per Kg"
+          },
+          "quantity_kg": {
+            "type": "number",
+            "title": "Quantity Kg"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "buyer_id",
+          "agreed_price_per_kg",
+          "quantity_kg"
+        ],
+        "title": "TransactionConfirmRequest"
+      },
+      "TransactionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "buyer_id": {
+            "type": "string",
+            "title": "Buyer Id"
+          },
+          "farmer_id": {
+            "type": "string",
+            "title": "Farmer Id"
+          },
+          "truck_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Truck Route Id"
+          },
+          "quantity_kg": {
+            "type": "number",
+            "title": "Quantity Kg"
+          },
+          "agreed_price_per_kg": {
+            "type": "number",
+            "title": "Agreed Price Per Kg"
+          },
+          "total_amount": {
+            "type": "number",
+            "title": "Total Amount"
+          },
+          "logistics_shared_cost": {
+            "type": "number",
+            "title": "Logistics Shared Cost"
+          },
+          "logistics_solo_cost": {
+            "type": "number",
+            "title": "Logistics Solo Cost"
+          },
+          "farmer_savings": {
+            "type": "number",
+            "title": "Farmer Savings"
+          },
+          "escrow_status": {
+            "type": "string",
+            "title": "Escrow Status"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "otp_code": {
+            "type": "string",
+            "title": "Otp Code"
+          },
+          "otp_verified": {
+            "type": "boolean",
+            "title": "Otp Verified"
+          },
+          "pickup_time": {
+            "type": "string",
+            "title": "Pickup Time"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_id",
+          "buyer_id",
+          "farmer_id",
+          "quantity_kg",
+          "agreed_price_per_kg",
+          "total_amount",
+          "logistics_shared_cost",
+          "logistics_solo_cost",
+          "farmer_savings",
+          "escrow_status",
+          "status",
+          "otp_code",
+          "otp_verified",
+          "pickup_time",
+          "created_at"
+        ],
+        "title": "TransactionResponse"
+      },
+      "TruckRouteResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "driver_name": {
+            "type": "string",
+            "title": "Driver Name"
+          },
+          "driver_phone": {
+            "type": "string",
+            "title": "Driver Phone"
+          },
+          "truck_number": {
+            "type": "string",
+            "title": "Truck Number"
+          },
+          "truck_type": {
+            "type": "string",
+            "title": "Truck Type"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "title": "Destination"
+          },
+          "current_location": {
+            "type": "string",
+            "title": "Current Location"
+          },
+          "total_capacity_kg": {
+            "type": "number",
+            "title": "Total Capacity Kg"
+          },
+          "available_capacity_kg": {
+            "type": "number",
+            "title": "Available Capacity Kg"
+          },
+          "scheduled_departure": {
+            "type": "string",
+            "title": "Scheduled Departure"
+          },
+          "estimated_arrival": {
+            "type": "string",
+            "title": "Estimated Arrival"
+          },
+          "waypoints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Waypoints"
+          },
+          "pooled_rate_per_kg": {
+            "type": "number",
+            "title": "Pooled Rate Per Kg"
+          },
+          "solo_rate_per_kg": {
+            "type": "number",
+            "title": "Solo Rate Per Kg"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "shared_cost_total": {
+            "type": "number",
+            "title": "Shared Cost Total"
+          },
+          "solo_cost_total": {
+            "type": "number",
+            "title": "Solo Cost Total"
+          },
+          "farmer_savings": {
+            "type": "number",
+            "title": "Farmer Savings"
+          },
+          "is_recommended": {
+            "type": "boolean",
+            "title": "Is Recommended"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "driver_name",
+          "driver_phone",
+          "truck_number",
+          "truck_type",
+          "origin",
+          "destination",
+          "current_location",
+          "total_capacity_kg",
+          "available_capacity_kg",
+          "scheduled_departure",
+          "estimated_arrival",
+          "waypoints",
+          "pooled_rate_per_kg",
+          "solo_rate_per_kg",
+          "status",
+          "shared_cost_total",
+          "solo_cost_total",
+          "farmer_savings",
+          "is_recommended"
+        ],
+        "title": "TruckRouteResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VoiceIncomingRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": "+919812345001"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "hi"
+          }
+        },
+        "type": "object",
+        "title": "VoiceIncomingRequest"
+      },
+      "VoiceStepRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": "+919812345001"
+          },
+          "step": {
+            "type": "integer",
+            "title": "Step",
+            "default": 0
+          },
+          "user_speech": {
+            "type": "string",
+            "title": "User Speech",
+            "default": ""
+          },
+          "session_data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Data"
+          }
+        },
+        "type": "object",
+        "title": "VoiceStepRequest"
+      },
+      "VoiceStepResponse": {
+        "properties": {
+          "step": {
+            "type": "integer",
+            "title": "Step"
+          },
+          "ai_speech": {
+            "type": "string",
+            "title": "Ai Speech"
+          },
+          "audio_cue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio Cue"
+          },
+          "is_final": {
+            "type": "boolean",
+            "title": "Is Final",
+            "default": false
+          },
+          "extracted_entities": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Entities"
+          },
+          "created_listing_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Listing Id"
+          },
+          "session_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Session Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step",
+          "ai_speech",
+          "session_data"
+        ],
+        "title": "VoiceStepResponse"
+      },
+      "VoiceTranscribeRequest": {
+        "properties": {
+          "mock_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mock Text"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "hi"
+          }
+        },
+        "type": "object",
+        "title": "VoiceTranscribeRequest"
+      },
+      "VoiceTranscribeResponse": {
+        "properties": {
+          "transcript": {
+            "type": "string",
+            "title": "Transcript"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.98
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "hi"
+          },
+          "detected_entities": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Detected Entities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transcript",
+          "detected_entities"
+        ],
+        "title": "VoiceTranscribeResponse"
+      }
+    }
+  }
+}
