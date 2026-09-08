@@ -65,6 +65,8 @@ if os.path.exists(web_demo_path):
         app.mount("/static", StaticFiles(directory=static_path), name="static")
 
     @app.get("/")
+    @app.get("/demo")
+    @app.get("/demo/")
     def serve_demo_ui():
         index_file = os.path.join(web_demo_path, "index.html")
         if os.path.exists(index_file):
