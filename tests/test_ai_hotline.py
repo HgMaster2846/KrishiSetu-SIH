@@ -97,3 +97,55 @@ def test_one_click_deploy_endpoint():
     data = res.json()
     assert data["selected_platform"] == "railway"
     assert "webhook_url" in data
+
+def test_telephony_pcm_audio_conversion():
+    import io, wave, numpy as np
+    from app.services.sarvam_service import SarvamService
+
+    # Generate synthetic 22050 Hz 16-bit WAV
+    rate_in = 22050
+    duration = 0.5
+    t = np.linspace(0, duration, int(rate_in * duration), endpoint=False)
+    samples = (np.sin(2 * np.pi * 440 * t) * 16384).astype(np.int16)
+
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(rate_in)
+        wf.writeframes(samples.tobytes())
+    raw_22k = buf.getvalue()
+
+    # Convert to telephony PCM
+    pcm_8k = SarvamService.convert_to_telephony_pcm(raw_22k, target_rate=8000)
+    assert pcm_8k.startswith(b"RIFF")
+    
+    with wave.open(io.BytesIO(pcm_8k), 'rb') as wf:
+        assert wf.getframerate() == 8000
+        assert wf.getnchannels() == 1
+        assert wf.getsampwidth() == 2
+
+def test_stream_hotline_audio_endpoint():
+    import io, wave, numpy as np
+    from app.services.sarvam_service import SarvamService
+
+    # Create and cache a valid 8kHz audio file
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(8000)
+        wf.writeframes(np.zeros(800, dtype=np.int16).tobytes())
+    audio_id = SarvamService.cache_audio(buf.getvalue())
+
+    # Test stream with .wav extension
+    res = client.get(f"/voice/audio/{audio_id}.wav")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "audio/wav"
+    assert len(res.content) > 44
+    assert res.content.startswith(b"RIFF")
+
+    # Test 404 for invalid audio
+    res_404 = client.get("/voice/audio/nonexistent_audio_id.wav")
+    assert res_404.status_code == 404
+

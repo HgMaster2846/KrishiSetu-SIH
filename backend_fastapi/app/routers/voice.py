@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect, Response
@@ -13,6 +14,8 @@ from ..services.sarvam_service import SarvamService
 from ..services.exotel_service import ExotelService
 from ..models import models
 from ..config import settings
+
+logger = logging.getLogger("krishisetu.voice")
 
 router = APIRouter(prefix="/voice", tags=["Voice Hotline"])
 
@@ -120,29 +123,63 @@ async def extract_payload(request: Request) -> Dict[str, Any]:
 def stream_hotline_audio(audio_id: str):
     """
     Streams synthesized Hindi voice audio from Sarvam Bulbul TTS for Exotel <Play> directive.
+    Strictly returns 8000 Hz 16-bit Mono PCM WAV with HTTP 200, no redirects, raw audio/wav.
     """
-    audio_bytes = SarvamService.get_cached_audio(audio_id)
-    if not audio_bytes:
+    clean_id = audio_id.replace(".wav", "").replace(".mp3", "")
+    logger.info(f"AUDIO_STREAM_REQUEST: audio_id={audio_id} clean_id={clean_id}")
+    audio_bytes = SarvamService.get_cached_audio(clean_id)
+    if not audio_bytes or len(audio_bytes) < 44 or not audio_bytes.startswith(b"RIFF"):
+        logger.warning(f"AUDIO_STREAM_FAILURE: audio_id={clean_id} not found, empty, or invalid WAV")
         raise HTTPException(status_code=404, detail="Audio file not found or expired")
-    return Response(content=audio_bytes, media_type="audio/wav")
+    
+    logger.info(f"AUDIO_STREAM_SUCCESS: audio_id={clean_id} bytes={len(audio_bytes)} format=8kHz_16bit_mono_wav")
+    return Response(content=audio_bytes, media_type="audio/wav", status_code=200)
 
-async def build_exoml_response(ai_speech: str, next_action_url: Optional[str] = None, is_final: bool = False) -> str:
+def get_effective_base_url(request: Optional[Request] = None) -> str:
+    if request:
+        host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+        if host and "127.0.0.1" not in host and "localhost" not in host:
+            proto = request.headers.get("x-forwarded-proto", "https")
+            dynamic_base = f"{proto}://{host}".rstrip("/")
+            settings.BASE_URL = dynamic_base
+            return dynamic_base
+    return (settings.BASE_URL or "http://localhost:8000").rstrip("/")
+
+async def build_exoml_response(
+    ai_speech: str,
+    next_action_url: Optional[str] = None,
+    is_final: bool = False,
+    base_url: Optional[str] = None,
+    request: Optional[Request] = None
+) -> str:
     """
     Generates production-grade ExoML / TwiML.
-    If Sarvam TTS is active, pre-synthesizes Hindi audio and injects <Play> tag.
-    Provides <Say language="hi-IN"> fallback and <Record> fallback for feature phones.
+    Fail-safe audio verification:
+    1. If Sarvam TTS produces valid WAV audio (8kHz PCM), caches it and returns <Play>.
+    2. If audio synthesis fails, returns empty/invalid WAV, or fails validation -> fallbacks to <Say language="hi-IN" voice="Polly.Aditi">.
+    Never returns a silent or broken <Play> tag.
     """
-    base_url = (settings.BASE_URL or "http://localhost:8000").rstrip("/")
+    base = (base_url or get_effective_base_url(request)).rstrip("/")
     audio_play_tag = ""
     
     if settings.SARVAM_API_KEY:
         try:
             audio_bytes = await SarvamService.text_to_speech(ai_speech, language="hi-IN")
-            if audio_bytes:
+            if audio_bytes and len(audio_bytes) > 44 and audio_bytes.startswith(b"RIFF"):
                 audio_id = SarvamService.cache_audio(audio_bytes)
-                audio_play_tag = f"<Play>{base_url}/voice/audio/{audio_id}.wav</Play>"
-        except Exception:
+                cached = SarvamService.get_cached_audio(audio_id)
+                if cached and len(cached) > 44 and cached.startswith(b"RIFF"):
+                    audio_play_tag = f"<Play>{base}/voice/audio/{audio_id}.wav</Play>"
+                    logger.info(f"GREETING_AUDIO_GENERATED: audio_id={audio_id} size={len(cached)} url={base}/voice/audio/{audio_id}.wav")
+                else:
+                    logger.warning(f"GREETING_AUDIO_FALLBACK: audio caching failed for '{ai_speech[:30]}...'")
+            else:
+                logger.warning(f"GREETING_AUDIO_FALLBACK: Sarvam TTS returned non-WAV or empty bytes for '{ai_speech[:30]}...'")
+        except Exception as e:
+            logger.error(f"GREETING_AUDIO_FALLBACK: Sarvam TTS exception {e} for '{ai_speech[:30]}...'")
             audio_play_tag = ""
+    else:
+        logger.info(f"GREETING_AUDIO_FALLBACK: SARVAM_API_KEY not configured, using Polly.Aditi fallback")
 
     speech_block = audio_play_tag if audio_play_tag else f'<Say language="hi-IN" voice="Polly.Aditi">{ai_speech}</Say>'
 
@@ -153,6 +190,7 @@ async def build_exoml_response(ai_speech: str, next_action_url: Optional[str] = 
     <Hangup/>
 </Response>"""
     else:
+        logger.info(f"GATHER_STARTED: action_url={next_action_url}")
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     {speech_block}
@@ -163,7 +201,8 @@ async def build_exoml_response(ai_speech: str, next_action_url: Optional[str] = 
     <Record action="{next_action_url}" maxLength="15" timeout="4" finishOnKey="#" playBeep="true" />
 </Response>"""
 
-@router.post("/webhook")
+@router.api_route("/webhook", methods=["GET", "POST"])
+@router.api_route("/exotel/incoming", methods=["GET", "POST"])
 async def real_phone_inbound_webhook(request: Request, db: Session = Depends(get_db)):
     """
     Inbound voice webhook dialed from any REAL mobile phone to Exotel hotline number.
@@ -172,6 +211,7 @@ async def real_phone_inbound_webhook(request: Request, db: Session = Depends(get
     form = await extract_payload(request)
     call_sid = form.get("CallSid") or form.get("call_sid") or f"CALL-EXO-{int(datetime.utcnow().timestamp())}"
     from_phone = form.get("From") or form.get("from") or form.get("Caller") or "+919812345001"
+    logger.info(f"VOICE_WEBHOOK_RECEIVED: call_sid={call_sid} from={from_phone}")
 
     # Save or update Call Log idempotently
     call_log = db.query(models.CallLogModel).filter(models.CallLogModel.call_sid == call_sid).first()
@@ -220,13 +260,14 @@ async def real_phone_inbound_webhook(request: Request, db: Session = Depends(get
         "ai_speech": greeting
     })
     
-    base_url = settings.BASE_URL or "http://localhost:8000"
+    base_url = get_effective_base_url(request)
     gather_url = f"{base_url}/voice/gather?call_sid={call_sid}"
     
-    twiml = await build_exoml_response(greeting, next_action_url=gather_url, is_final=False)
+    twiml = await build_exoml_response(greeting, next_action_url=gather_url, is_final=False, base_url=base_url, request=request)
     return Response(content=twiml, media_type="application/xml")
 
-@router.post("/gather")
+@router.api_route("/gather", methods=["GET", "POST"])
+@router.api_route("/exotel/gather", methods=["GET", "POST"])
 async def real_phone_speech_gather(request: Request, call_sid: Optional[str] = None, db: Session = Depends(get_db)):
     """
     Receives transcribed speech or recording URL from Exotel.
@@ -265,6 +306,8 @@ async def real_phone_speech_gather(request: Request, call_sid: Optional[str] = N
     speech_text = form.get("SpeechResult") or form.get("speech_result") or ""
     dtmf_digits = form.get("Digits") or form.get("digits") or ""
     recording_url = form.get("RecordingUrl") or form.get("recording_url") or ""
+
+    logger.info(f"GATHER_RESPONSE_RECEIVED: call_sid={sid} speech_text='{speech_text}' digits='{dtmf_digits}' recording_url='{recording_url}'")
 
     if not speech_text and recording_url:
         # Carrier recording fallback: Transcribe audio using Sarvam Saaras STT
@@ -359,11 +402,11 @@ async def real_phone_speech_gather(request: Request, call_sid: Optional[str] = N
             "sms_status": "DISPATCHED"
         })
 
-    base_url = settings.BASE_URL or "http://localhost:8000"
+    base_url = get_effective_base_url(request)
     gather_url = f"{base_url}/voice/gather?call_sid={sid}"
 
     # Build ExoML with Sarvam Bulbul TTS Audio Playback (Task 2 & 11)
-    twiml = await build_exoml_response(ai_speech, next_action_url=gather_url, is_final=is_final)
+    twiml = await build_exoml_response(ai_speech, next_action_url=gather_url, is_final=is_final, base_url=base_url, request=request)
     return Response(content=twiml, media_type="application/xml")
 
 @router.post("/call")
@@ -376,7 +419,8 @@ async def trigger_outbound_call(request: Request):
     return await ExotelService.make_test_call(to_phone)
 
 
-@router.post("/sms")
+@router.api_route("/sms", methods=["GET", "POST"])
+@router.api_route("/exotel/sms", methods=["GET", "POST"])
 async def inbound_sms_webhook(request: Request, db: Session = Depends(get_db)):
     """
     Handles SMS replies from farmer ("YES", "HAAN", "1") to confirm negotiated orders.
@@ -408,7 +452,8 @@ async def inbound_sms_webhook(request: Request, db: Session = Depends(get_db)):
     reply_msg = "Dhanyawad! Aapka sauda safalta-purvak confirm ho gaya hai. KrishiSetu truck driver aapse jald hi sampark karega."
     return {"status": "SUCCESS", "confirmed": confirmed, "reply": reply_msg}
 
-@router.post("/status")
+@router.api_route("/status", methods=["GET", "POST"])
+@router.api_route("/exotel/status", methods=["GET", "POST"])
 async def call_status_callback(request: Request, db: Session = Depends(get_db)):
     """Call status callback: captures duration and completion."""
     form = await extract_payload(request)

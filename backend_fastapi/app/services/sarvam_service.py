@@ -1,12 +1,87 @@
 import httpx
 import base64
+import io
+import wave
+import math
+import logging
 from typing import Dict, Any, Optional
+import numpy as np
+from scipy import signal
 from ..config import settings
+
+logger = logging.getLogger("krishisetu.sarvam")
 
 SARVAM_STT_URL = "https://api.sarvam.ai/speech-to-text"
 SARVAM_TTS_URL = "https://api.sarvam.ai/text-to-speech"
 
+def convert_to_telephony_pcm(audio_bytes: bytes, target_rate: int = 8000) -> bytes:
+    """
+    Converts arbitrary WAV audio bytes into telephony-standard
+    8000 Hz, 16-bit, Mono PCM WAV format.
+    Required by telecom carrier media gateways (Exotel).
+    """
+    if not audio_bytes or len(audio_bytes) < 44 or not audio_bytes.startswith(b"RIFF"):
+        return audio_bytes
+
+    try:
+        with io.BytesIO(audio_bytes) as in_io:
+            with wave.open(in_io, "rb") as wf:
+                n_channels = wf.getnchannels()
+                sampwidth = wf.getsampwidth()
+                framerate = wf.getframerate()
+                n_frames = wf.getnframes()
+                raw_frames = wf.readframes(n_frames)
+
+        # If already 8000 Hz, mono (1 channel), 16-bit (2 bytes)
+        if framerate == target_rate and n_channels == 1 and sampwidth == 2:
+            return audio_bytes
+
+        # Decode samples according to sampwidth
+        if sampwidth == 2:
+            data = np.frombuffer(raw_frames, dtype=np.int16)
+        elif sampwidth == 1:
+            data = ((np.frombuffer(raw_frames, dtype=np.uint8).astype(np.int32) - 128) * 256).astype(np.int16)
+        elif sampwidth == 4:
+            data = (np.frombuffer(raw_frames, dtype=np.int32) / 65536).astype(np.int16)
+        else:
+            return audio_bytes
+
+        # Convert multi-channel to mono
+        if n_channels > 1:
+            data = data.reshape(-1, n_channels)
+            data = data.mean(axis=1).astype(np.int16)
+
+        # Resample to target_rate (e.g. 8000 Hz)
+        if framerate != target_rate:
+            gcd = math.gcd(framerate, target_rate)
+            up = target_rate // gcd
+            down = framerate // gcd
+            resampled = signal.resample_poly(data, up, down)
+            resampled = np.clip(resampled, -32768, 32767).astype(np.int16)
+        else:
+            resampled = data
+
+        # Package into 8kHz mono 16-bit WAV
+        out_io = io.BytesIO()
+        with wave.open(out_io, "wb") as out_wf:
+            out_wf.setnchannels(1)
+            out_wf.setsampwidth(2)
+            out_wf.setframerate(target_rate)
+            out_wf.writeframes(resampled.tobytes())
+
+        telephony_bytes = out_io.getvalue()
+        logger.info(f"AUDIO_RESAMPLED: {framerate}Hz ({n_channels}ch) -> {target_rate}Hz (1ch mono), size: {len(audio_bytes)} -> {len(telephony_bytes)} bytes")
+        return telephony_bytes
+
+    except Exception as e:
+        logger.warning(f"Audio resampling failed: {e}; returning original bytes")
+        return audio_bytes
+
 class SarvamService:
+    @staticmethod
+    def convert_to_telephony_pcm(audio_bytes: bytes, target_rate: int = 8000) -> bytes:
+        return convert_to_telephony_pcm(audio_bytes, target_rate=target_rate)
+
     @staticmethod
     async def verify_key() -> Dict[str, Any]:
         """Validates the Sarvam AI subscription key."""
@@ -54,7 +129,7 @@ class SarvamService:
 
     @staticmethod
     async def text_to_speech(text: str, language: str = "hi-IN") -> Optional[bytes]:
-        """Synthesizes speech using Sarvam Bulbul in Hindi."""
+        """Synthesizes speech using Sarvam Bulbul in Hindi and converts to 8kHz mono PCM WAV for telecom carrier."""
         if not settings.SARVAM_API_KEY:
             return None
             
@@ -74,8 +149,11 @@ class SarvamService:
                 if res.status_code == 200:
                     audios = res.json().get("audios", [])
                     if audios:
-                        return base64.b64decode(audios[0])
-        except Exception:
+                        raw_wav = base64.b64decode(audios[0])
+                        # Convert to 8kHz telephony mono PCM WAV
+                        return convert_to_telephony_pcm(raw_wav, target_rate=8000)
+        except Exception as e:
+            logger.error(f"Sarvam text_to_speech failed: {e}")
             pass
         return None
 
@@ -98,12 +176,14 @@ class SarvamService:
 
     @staticmethod
     def cache_audio(audio_bytes: bytes) -> str:
-        """Stores synthesized audio in memory and returns unique audio_id."""
+        """Stores synthesized audio in memory (ensuring 8kHz PCM) and returns unique audio_id."""
         import uuid
         import time
+        # Ensure audio is 8000 Hz telephony PCM
+        pcm_bytes = convert_to_telephony_pcm(audio_bytes, target_rate=8000)
         audio_id = f"aud_{int(time.time())}_{uuid.uuid4().hex[:6]}"
-        AUDIO_CACHE[audio_id] = audio_bytes
-        # Evict old items if cache exceeds 100 entries
+        AUDIO_CACHE[audio_id] = pcm_bytes
+        # Evict oldest items if cache exceeds 100 entries
         if len(AUDIO_CACHE) > 100:
             oldest_key = next(iter(AUDIO_CACHE))
             AUDIO_CACHE.pop(oldest_key, None)
@@ -112,7 +192,7 @@ class SarvamService:
     @staticmethod
     def get_cached_audio(audio_id: str) -> Optional[bytes]:
         """Retrieves cached audio bytes by audio_id."""
-        # Clean audio_id in case .wav extension was appended
+        # Clean audio_id in case .wav or .mp3 extension was appended
         clean_id = audio_id.replace(".wav", "").replace(".mp3", "")
         return AUDIO_CACHE.get(clean_id) or AUDIO_CACHE.get(audio_id)
 
