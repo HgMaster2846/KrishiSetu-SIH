@@ -68,7 +68,7 @@ class GeminiService:
         if not settings.GEMINI_API_KEY:
             return None # Trigger fallback to AIVoiceService
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={settings.GEMINI_API_KEY}"
         
         # Build contents from history
         contents = [
@@ -127,13 +127,13 @@ Extract whatever entities are mentioned and respond ONLY in valid JSON format:
   "correction_field": "<'crop', 'quantity', 'location', 'price', or null>"
 }}
 """
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={settings.GEMINI_API_KEY}"
         payload = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.1, "maxOutputTokens": 250}
         }
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 res = await client.post(url, json=payload)
                 if res.status_code == 200:
                     candidates = res.json().get("candidates", [])

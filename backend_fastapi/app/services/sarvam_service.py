@@ -21,8 +21,8 @@ class SarvamService:
         payload = {
             "inputs": ["नमस्ते"],
             "target_language_code": "hi-IN",
-            "speaker": "meera",
-            "model": "bulbul:v1"
+            "speaker": "priya",
+            "model": "bulbul:v3"
         }
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
@@ -65,8 +65,8 @@ class SarvamService:
         payload = {
             "inputs": [text],
             "target_language_code": language,
-            "speaker": "meera",
-            "model": "bulbul:v1"
+            "speaker": "priya",
+            "model": "bulbul:v3"
         }
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:

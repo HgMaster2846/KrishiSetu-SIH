@@ -14,7 +14,8 @@ class ExotelService:
         if not settings.EXOTEL_API_KEY or not settings.EXOTEL_API_SECRET or not settings.EXOTEL_ACCOUNT_SID:
             return {"valid": False, "message": "Exotel credentials not configured."}
         
-        url = f"{cls.get_base_url()}/Numbers.json"
+        phone_clean = (settings.EXOTEL_PHONE_NUMBER or "").replace("+", "").replace(" ", "").replace("-", "")
+        url = f"{cls.get_base_url()}/Numbers/{phone_clean}.json" if phone_clean else f"{cls.get_base_url()}/Numbers.json"
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
                 res = await client.get(
