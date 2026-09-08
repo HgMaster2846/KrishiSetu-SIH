@@ -4,6 +4,18 @@ from ..config import settings
 
 class ExotelService:
     @staticmethod
+    def normalize_phone_10_digit(phone: Optional[str]) -> str:
+        """Strips leading 0, +91, spaces, and dashes to ensure clean 10-digit number."""
+        if not phone:
+            return "9513886363"
+        cleaned = str(phone).replace("+", "").replace(" ", "").replace("-", "")
+        if cleaned.startswith("91") and len(cleaned) == 12:
+            cleaned = cleaned[2:]
+        elif cleaned.startswith("0") and len(cleaned) == 11:
+            cleaned = cleaned[1:]
+        return cleaned
+
+    @staticmethod
     def get_base_url() -> str:
         sid = settings.EXOTEL_ACCOUNT_SID or "trial_sid"
         return f"https://api.exotel.com/v1/Accounts/{sid}"
@@ -14,7 +26,7 @@ class ExotelService:
         if not settings.EXOTEL_API_KEY or not settings.EXOTEL_API_SECRET or not settings.EXOTEL_ACCOUNT_SID:
             return {"valid": False, "message": "Exotel credentials not configured."}
         
-        phone_clean = (settings.EXOTEL_PHONE_NUMBER or "").replace("+", "").replace(" ", "").replace("-", "")
+        phone_clean = cls.normalize_phone_10_digit(settings.EXOTEL_PHONE_NUMBER)
         url = f"{cls.get_base_url()}/Numbers/{phone_clean}.json" if phone_clean else f"{cls.get_base_url()}/Numbers.json"
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
@@ -43,8 +55,7 @@ class ExotelService:
                 "message": "Exotel API Key and Account SID are required to register webhooks."
             }
             
-        phone = settings.EXOTEL_PHONE_NUMBER or ""
-        clean_phone = phone.replace("+", "").replace(" ", "").replace("-", "")
+        clean_phone = cls.normalize_phone_10_digit(settings.EXOTEL_PHONE_NUMBER)
         
         endpoints = {
             "VoiceUrl": f"{base_url}/voice/webhook",
@@ -95,11 +106,12 @@ class ExotelService:
                 "message": "Exotel credentials not configured. Please enter them in Setup."
             }
         
+        from_num = cls.normalize_phone_10_digit(settings.EXOTEL_PHONE_NUMBER)
         url = f"{cls.get_base_url()}/Calls/connect.json"
         payload = {
-            "From": settings.EXOTEL_PHONE_NUMBER,
+            "From": from_num,
             "To": to_phone,
-            "CallerId": settings.EXOTEL_PHONE_NUMBER,
+            "CallerId": from_num,
             "Url": f"{settings.BASE_URL}/voice/webhook",
             "TimeLimit": "120"
         }
@@ -124,9 +136,10 @@ class ExotelService:
         if not settings.EXOTEL_API_KEY or not settings.EXOTEL_ACCOUNT_SID:
             return {"success": False, "message": "Exotel credentials missing"}
             
+        from_num = cls.normalize_phone_10_digit(settings.EXOTEL_PHONE_NUMBER)
         url = f"{cls.get_base_url()}/Sms/send.json"
         payload = {
-            "From": settings.EXOTEL_PHONE_NUMBER,
+            "From": from_num,
             "To": to_phone,
             "Body": message
         }

@@ -25,13 +25,13 @@ class Settings:
     DATABASE_URL: str = os.getenv('DATABASE_URL', 'sqlite:///./krishisetu.db')
     SECRET_KEY: str = os.getenv('SECRET_KEY', 'krishisetu-sih2026-supersecret-jwt-key')
     DEMO_MODE: bool = os.getenv('DEMO_MODE', 'true').lower() in ('true', '1', 'yes')
-    HOTLINE_NUMBER: str = os.getenv('HOTLINE_NUMBER', '+91 1800-260-3300')
+    HOTLINE_NUMBER: str = os.getenv('HOTLINE_NUMBER', '9513886363')
     
     # Exotel Primary Telephony
     EXOTEL_API_KEY: Optional[str] = os.getenv('EXOTEL_API_KEY', '')
     EXOTEL_API_SECRET: Optional[str] = os.getenv('EXOTEL_API_SECRET', '')
     EXOTEL_ACCOUNT_SID: Optional[str] = os.getenv('EXOTEL_ACCOUNT_SID', '')
-    EXOTEL_PHONE_NUMBER: Optional[str] = os.getenv('EXOTEL_PHONE_NUMBER', '+91 1800-260-3300')
+    EXOTEL_PHONE_NUMBER: Optional[str] = os.getenv('EXOTEL_PHONE_NUMBER', '9513886363')
     EXOTEL_API_DOMAIN: str = os.getenv('EXOTEL_API_DOMAIN', 'api.exotel.com')
     
     # Sarvam AI Voice
